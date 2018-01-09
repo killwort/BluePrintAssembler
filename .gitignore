@@ -1,0 +1,13 @@
+_UpgradeReport_Files
+_ReSharper.*
+TestResults
+*.user
+.svn
+obj
+bin
+*.suo
+/packages
+version
+node_modules
+.vs
+.idea

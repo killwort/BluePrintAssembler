@@ -1,0 +1,38 @@
+﻿$namespace=BluePrintAssembler.Steam
+using System.Collections.Generic;
+COMPILER VDF
+internal string Name;
+internal VDFObject Result;
+IGNORECASE
+CHARACTERS
+	nonEscaped=ANY-"\""-"\\".
+TOKENS
+	stringValue="\"" {nonEscaped|"\\\\"|"\\\""} "\"".
+IGNORE
+	'\r'+'\n'+'\t'
+PRODUCTIONS
+Value<out VDFObject val>									(. val = null; .)
+	=
+		stringValue											(. val = new VDFObject{ Value = t.val }; .) 
+	| 
+		"{" 
+		PropList<out var list>								(. val = new VDFObject{ Values = list }; .)
+		"}"
+	.
+Prop<out string name, out VDFObject val>
+	=
+		stringValue											(. name = t.val; .)
+		Value<out val>
+	.
+PropList<. out List<Tuple<string,VDFObject>> list .>		(. list = new List<Tuple<string,VDFObject>>(); .)
+	=
+		Prop<out var name1, out var val1>					(. list.Add(Tuple.Create(name1,val1)); .)
+		[
+			PropList<out var more>							(. list.AddRange(more); .)
+		]
+	.
+VDF
+	=
+		Prop<out var name, out var val>						(. Name = name; Result = val; .)
+	.
+END VDF.
