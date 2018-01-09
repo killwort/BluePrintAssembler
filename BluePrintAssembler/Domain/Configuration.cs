@@ -2,8 +2,11 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using BluePrintAssembler.Annotations;
@@ -19,43 +22,72 @@ namespace BluePrintAssembler.Domain
         private static Configuration _instance;
         private string _loadStatus;
         public static Configuration Instance => _instance ?? (_instance = new Configuration());
-        public Task<Tuple<string[],string[]>> DiscoverFolders()
+        public Task<string[]> DiscoverFolders()
         {
             return Task.Run(() =>
             {
                 LoadStatus = "Discovering game/mods location…";
                 var sd=new SteamPathDiscoverer();
-                var basePaths=sd.GetBasePath().ToArray();
-                var modsPaths = sd.GetModsPaths().ToArray();
-                LoadStatus = $"Discovering game/mods location… {basePaths.First()}";
-                return Tuple.Create(basePaths, modsPaths);
+                return new[] { sd.GetBasePath() }.Concat(sd.GetModsPaths()).ToArray();
             });
         }
 
-        public async Task<IEnumerable<string>> GetEnabledMods(string[] modFolders)
+        public async Task<ModInfo[]> GetMods(string[] modFolders)
         {
+            LoadStatus = "Determining enabled mods…";
             var allItems = await Task.WhenAll(modFolders.Select(folder => Task.Run(() =>
             {
                 if (File.Exists(Path.Combine(folder, "mod-list.json")))
                     return ((JArray) ((JObject) JsonConvert.DeserializeObject(File.ReadAllText(Path.Combine(folder, "mod-list.json"))))["mods"])
-                        .Where(x => x["enabled"].Value<bool>())
-                        .Select(x => x["name"].Value<string>());
+                        .Select(x => new ModInfo{Name= x["name"].Value<string>(),Enabled=x["enabled"].Value<bool>()});
                 else
-                    return new string[0];
+                    return new ModInfo[0];
             })).ToArray());
-            return allItems.SelectMany(x => x);
+            return new[] { new ModInfo{Name="core",Enabled=true }}.Concat(allItems.SelectMany(x => x)).ToArray();
         }
 
-        /*public Task<string[]> DiscoverMods(string[] modPaths)
+        public async Task<JObject> GetModSettings(string[] modFolders)
         {
+            LoadStatus = "Reading mod settings…";
+            var allItems = await Task.WhenAll(modFolders.Select(folder => Task.Run(() =>
+            {
+                if (File.Exists(Path.Combine(folder, "mod-settings.json")))
+                    return (JObject)JsonConvert.DeserializeObject(File.ReadAllText(Path.Combine(folder, "mod-settings.json")));
+                else
+                    return new JObject();
+            })).ToArray());
+            return allItems.Aggregate(new JObject(), (acc, obj) => { acc.Merge(obj); return acc; });
+        }
 
-        }*/
-        
         public async Task Load()
         {
             var folders = await DiscoverFolders();
-            var enabledMods=await GetEnabledMods(folders.Item2);
+            var mods = await GetMods(folders);
+            var modSettings = await GetModSettings(folders);
+            LoadStatus = "Locating enabled mods…";
+            Task.WaitAll(mods.Where(x => x.Enabled).Select(x => x.MapToFilesystem(folders)).ToArray());
+            var verStamp = mods.Where(x => x.Enabled)
+                .Aggregate(
+                    new StringBuilder("BluePrintAssembler.").Append(Assembly.GetEntryAssembly().GetName().Version),
+                    (builder, mod) => builder.Append('|').Append(mod.Name).Append('.')
+                        .Append(mod.Version?.ToString() ?? "*"));
+            verStamp.Append("|").Append(modSettings.ToString(Formatting.None));
+            var verStampHash = MD5.Create().ComputeHash(Encoding.UTF8.GetBytes(verStamp.ToString()))
+                .Aggregate(new StringBuilder(), (builder, b) => builder.Append(b.ToString("x2"))).ToString();
+            var cacheFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "BluePrintAssembler", verStampHash + ".cache");
+            if (File.Exists(cacheFile))
+            {
+                LoadStatus = "Loading data from cache…";
+            }
+            else
+            {
+                LoadStatus = "Loading mods…";
+                Directory.CreateDirectory(Path.GetDirectoryName(cacheFile));
+                File.WriteAllText(cacheFile,verStamp.ToString());
+            }
         }
+
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -73,6 +105,82 @@ namespace BluePrintAssembler.Domain
                 if (value == _loadStatus) return;
                 _loadStatus = value;
                 OnPropertyChanged();
+            }
+        }
+    }
+    public class ModInfo
+    {
+        public string Name;
+        public Version Version;
+        public string BasePath;
+        public bool Enabled;
+
+        public Task MapToFilesystem(string[] folders)
+        {
+            return Task.Run(() =>
+            {
+                foreach (var folder in folders.Reverse())
+                {
+                    if (Directory.Exists(Path.Combine(folder, Name)))
+                    {
+                        BasePath = Path.Combine(folder, Name);
+                        if(File.Exists(Path.Combine(BasePath,"info.json")))
+                            using (var fs = File.OpenRead(Path.Combine(BasePath, "info.json")))
+                                LoadVersionFromInfoJson(fs);
+                        break;
+                    }
+
+                    var versionedDir = Directory.GetDirectories(folder, $"{Name}_*.*.*")
+                        .Select(x => Tuple.Create(x, Version.TryParse(Path.GetFileName(x).Substring(Name.Length + 1), out var ver), ver))
+                        .Where(x => x.Item2)
+                        .OrderByDescending(x => x.Item3)
+                        .FirstOrDefault();
+
+                    if (versionedDir != null)
+                    {
+                        BasePath = versionedDir.Item1;
+                        Version = versionedDir.Item3;
+                        break;
+                    }
+
+                    if (File.Exists(Path.Combine(folder, $"{Name}.zip")))
+                    {
+                        BasePath = Path.Combine(folder, Name);
+                        using(var zfs=File.OpenRead(BasePath))
+                        using (var zfile = new ZipArchive(zfs,ZipArchiveMode.Read))
+                        {
+                            var zEntry=zfile.Entries.FirstOrDefault(x => x.Name == "info.json");
+                            if(zEntry!=null)
+                                using (var fs = zEntry.Open())
+                                {
+                                    LoadVersionFromInfoJson(fs);
+                                }
+                        }
+                            break;
+                    }
+
+                    var versionedFile = Directory.GetFiles(folder, $"{Name}_*.*.*.zip")
+                        .Select(x => Tuple.Create(x, Version.TryParse(Path.GetFileNameWithoutExtension(x).Substring(Name.Length + 1), out var ver), ver))
+                        .Where(x => x.Item2)
+                        .OrderByDescending(x => x.Item3)
+                        .FirstOrDefault();
+
+                    if (versionedFile != null)
+                    {
+                        BasePath = versionedFile.Item1;
+                        Version = versionedFile.Item3;
+                        break;
+                    }
+                }
+            });
+        }
+
+        private void LoadVersionFromInfoJson(Stream fs)
+        {
+            using (var reader = new StreamReader(fs))
+            {
+                var verString=((JObject) JsonConvert.DeserializeObject(reader.ReadToEnd()))["version"]?.Value<string>();
+                if (verString != null && Version.TryParse(verString, out var ver)) Version = ver;
             }
         }
     }

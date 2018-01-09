@@ -9,12 +9,11 @@ namespace BluePrintAssembler.Steam
 {
     class SteamPathDiscoverer
     {
-        public IEnumerable<string> GetBasePath()
+        public string GetBasePath()
         {
             var xfolders = EnumerateSteamLibraryFolders().ToArray();
             var baseFolder = xfolders.First(x => File.Exists(Path.Combine(x, "Factorio", "bin", "x64", "factorio.exe")));
-            yield return Path.Combine(baseFolder, "Factorio", "data", "base");
-            yield return Path.Combine(baseFolder, "Factorio", "data", "core");
+            return Path.Combine(baseFolder, "Factorio", "data");
         }
 
         private IEnumerable<string> EnumerateSteamLibraryFolders()
