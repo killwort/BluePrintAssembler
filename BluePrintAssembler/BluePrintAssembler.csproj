@@ -46,6 +46,18 @@
     <Reference Include="NLua, Version=1.3.2.0, Culture=neutral, PublicKeyToken=8df2ab518030ea95, processorArchitecture=MSIL">
       <HintPath>..\packages\NLua.1.3.2.1\lib\net45\NLua.dll</HintPath>
     </Reference>
+    <Reference Include="QuickGraph, Version=3.6.61114.0, Culture=neutral, PublicKeyToken=f3fb40175eec2af3, processorArchitecture=MSIL">
+      <HintPath>..\packages\QuickGraphPCL.3.6.61114.2\lib\net40-client\QuickGraph.dll</HintPath>
+    </Reference>
+    <Reference Include="QuickGraph.Data, Version=3.6.61114.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\QuickGraphPCL.3.6.61114.2\lib\net40-client\QuickGraph.Data.dll</HintPath>
+    </Reference>
+    <Reference Include="QuickGraph.Graphviz, Version=3.6.61114.0, Culture=neutral, PublicKeyToken=f3fb40175eec2af3, processorArchitecture=MSIL">
+      <HintPath>..\packages\QuickGraphPCL.3.6.61114.2\lib\net40-client\QuickGraph.Graphviz.dll</HintPath>
+    </Reference>
+    <Reference Include="QuickGraph.Serialization, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\QuickGraphPCL.3.6.61114.2\lib\net40-client\QuickGraph.Serialization.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.IO.Compression, Version=4.1.2.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
@@ -74,9 +86,34 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Domain\Assembler.cs" />
+    <Compile Include="Domain\BaseEntity.cs" />
+    <Compile Include="Domain\BaseGameObject.cs" />
+    <Compile Include="Domain\BaseProducibleObject.cs" />
+    <Compile Include="Domain\BaseProducingEntity.cs" />
+    <Compile Include="Domain\Box.cs" />
     <Compile Include="Domain\Configuration.cs" />
+    <Compile Include="Domain\Container.cs" />
+    <Compile Include="Domain\ElectricPole.cs" />
+    <Compile Include="Domain\EnergySource.cs" />
+    <Compile Include="Domain\Fluid.cs" />
+    <Compile Include="Domain\FluidBox.cs" />
+    <Compile Include="Domain\Furnace.cs" />
+    <Compile Include="Domain\Inserter.cs" />
+    <Compile Include="Domain\Item.cs" />
+    <Compile Include="Domain\ItemWithAmount.cs" />
+    <Compile Include="Domain\MiningDrill.cs" />
+    <Compile Include="Domain\ModInfo.cs" />
+    <Compile Include="Domain\ModuleSpecification.cs" />
+    <Compile Include="Domain\Point.cs" />
+    <Compile Include="Domain\PositionContainer.cs" />
+    <Compile Include="Domain\RawData.cs" />
+    <Compile Include="Domain\Recipe.cs" />
+    <Compile Include="Domain\RecipeInputsOutputs.cs" />
+    <Compile Include="Domain\TransportBelt.cs" />
     <Compile Include="Properties\Annotations.cs" />
     <Compile Include="Steam\VDFObject.cs" />
+    <Compile Include="Utils\Extensions.cs" />
     <Page Include="Splash.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -113,6 +150,7 @@
     </EmbeddedResource>
     <None Include="ATG\Parser.frame" />
     <None Include="ATG\Scanner.frame" />
+    <EmbeddedResource Include="Lua\FactorioDefs.lua" />
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
@@ -124,11 +162,10 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="ATG\Coco.exe" />
+    <EmbeddedResource Include="Lua\Init.lua" />
     <None Include="ATG\VDF.atg" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="LuaParser\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>
