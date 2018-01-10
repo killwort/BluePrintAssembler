@@ -20,7 +20,7 @@ namespace BluePrintAssembler.Domain
             if (rio?.Results == null) return false;
             return rio.Results.Any(x => x.Value.Name == result.Name && x.Value.Type == result.Type);
         }
-
+        [JsonIgnore]
         public RecipeInputsOutputs CurrentMode => Normal ?? this;
     }
 }

@@ -16,6 +16,13 @@ mods = {}
 settings = {}
 settings.startup = {}
 
+-- provide required functions
+function log(...) end
+function module(...) end
+
+serpent = {}
+function serpent.dump(...) return "" end
+
 -- load and override util module
 require "util"
 util = {}
@@ -26,6 +33,3 @@ util.by_pixel = by_pixel
 util.format_number = format_number
 util.increment = increment
 
--- provide required functions
-function log(...) end
-function module(...) end
