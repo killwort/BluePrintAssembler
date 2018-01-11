@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 
 namespace BluePrintAssembler.Domain
 {
-    public class BaseGameObject
+    public class BaseGameObject:IWithIcon
     {
         [JsonProperty("name")]
         public string Name { get; set; }
@@ -57,7 +57,11 @@ namespace BluePrintAssembler.Domain
         public virtual string Type { get; set; }
         [JsonProperty("icon_size")]
         public float IconSize { get; set; }
-        
+        [JsonProperty("icons")]
+        public Dictionary<string, IconPart> Icons { get; set; }
+
+        public IWithIcon FallbackIcon => null;
+
         /*[JsonExtensionData]
         public Dictionary<string,JToken> ExtraData { get; set; }*/
     }

@@ -60,6 +60,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.IO.Compression, Version=4.1.2.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <HintPath>..\packages\System.IO.Compression.4.3.0\lib\net46\System.IO.Compression.dll</HintPath>
       <Private>True</Private>
@@ -86,6 +87,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Domain\ARGB.cs" />
     <Compile Include="Domain\Assembler.cs" />
     <Compile Include="Domain\BaseEntity.cs" />
     <Compile Include="Domain\BaseGameObject.cs" />
@@ -99,9 +101,11 @@
     <Compile Include="Domain\Fluid.cs" />
     <Compile Include="Domain\FluidBox.cs" />
     <Compile Include="Domain\Furnace.cs" />
+    <Compile Include="Domain\IconPart.cs" />
     <Compile Include="Domain\Inserter.cs" />
     <Compile Include="Domain\Item.cs" />
     <Compile Include="Domain\ItemWithAmount.cs" />
+    <Compile Include="Domain\IWithIcon.cs" />
     <Compile Include="Domain\MiningDrill.cs" />
     <Compile Include="Domain\ModInfo.cs" />
     <Compile Include="Domain\ModuleSpecification.cs" />
@@ -111,10 +115,48 @@
     <Compile Include="Domain\Recipe.cs" />
     <Compile Include="Domain\RecipeInputsOutputs.cs" />
     <Compile Include="Domain\TransportBelt.cs" />
+    <Compile Include="UI\MainWindow.xaml.cs">
+      <DependentUpon>MainWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Properties\Annotations.cs" />
+    <Compile Include="Resources\Configuration.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Configuration.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Resources\Splash.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Splash.resx</DependentUpon>
+    </Compile>
     <Compile Include="Steam\VDFObject.cs" />
+    <Compile Include="UI\Parts\DraggableVisual.cs" />
+    <Compile Include="UI\Parts\DynamicCanvas.cs" />
+    <Compile Include="UI\Parts\Recipe.xaml.cs">
+      <DependentUpon>Recipe.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Parts\SelectionAdorner.cs" />
+    <Compile Include="UI\VM\DraggableElement.cs" />
+    <Compile Include="UI\VM\ISelectableElement.cs" />
+    <Compile Include="UI\VM\MainWindow.cs" />
+    <Compile Include="UI\VM\ManualItemSource.cs" />
+    <Compile Include="UI\VM\ProducibleItem.cs" />
+    <Compile Include="UI\VM\Recipe.cs" />
+    <Compile Include="UI\VM\RecipeSelector.cs" />
+    <Compile Include="UI\VM\Workspace.cs" />
+    <Compile Include="Utils\BitmapToImageSourceConverter.cs" />
     <Compile Include="Utils\Extensions.cs" />
-    <Page Include="Splash.xaml">
+    <Compile Include="Utils\MyVisualTreeHelper.cs" />
+    <Compile Include="Utils\NotifyTaskCompletion.cs" />
+    <Page Include="UI\MainWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UI\Parts\Recipe.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UI\Splash.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -125,7 +167,7 @@
     <Compile Include="Steam\Parser.cs" />
     <Compile Include="Steam\Scanner.cs" />
     <Compile Include="Steam\SteamPathDiscoverer.cs" />
-    <Compile Include="Splash.xaml.cs">
+    <Compile Include="UI\Splash.xaml.cs">
       <DependentUpon>Splash.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
@@ -148,9 +190,17 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <EmbeddedResource Include="Resources\Splash.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>Splash.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
     <None Include="ATG\Parser.frame" />
     <None Include="ATG\Scanner.frame" />
-    <EmbeddedResource Include="Lua\FactorioDefs.lua" />
+    <EmbeddedResource Include="Resources\Configuration.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Configuration.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\Lua\FactorioDefs.lua" />
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
@@ -162,7 +212,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="ATG\Coco.exe" />
-    <EmbeddedResource Include="Lua\Init.lua" />
+    <EmbeddedResource Include="Resources\Lua\Init.lua" />
     <None Include="ATG\VDF.atg" />
   </ItemGroup>
   <ItemGroup />

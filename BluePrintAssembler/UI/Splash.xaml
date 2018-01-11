@@ -4,10 +4,8 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:BluePrintAssembler"
+        xmlns:res="clr-namespace:BluePrintAssembler.Resources"
         mc:Ignorable="d"
-        Title="Splash" Height="80" Width="800" Loaded="Window_Loaded">
-    <Grid>
+        Title="{x:Static res:Splash.Title}" Height="80" HorizontalAlignment="Center" VerticalAlignment="Center" Width="800" Loaded="Window_Loaded" ResizeMode="NoResize" WindowStyle="None">
         <Label Content="{Binding Path=LoadStatus}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-
-    </Grid>
 </Window>

@@ -1,16 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
 using System.Resources;
 using System.Runtime.CompilerServices;
+using System.Runtime.Remoting.Channels;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Windows.Media;
 using BluePrintAssembler.Annotations;
 using BluePrintAssembler.Steam;
 using BluePrintAssembler.Utils;
@@ -26,24 +30,25 @@ namespace BluePrintAssembler.Domain
         {
         }
 
-        private RawData _rawData;
+        public event EventHandler Loaded;
+        public RawData RawData { get; private set; }
         private static Configuration _instance;
         private string _loadStatus;
         public static Configuration Instance => _instance ?? (_instance = new Configuration());
 
-        public Task<string[]> DiscoverFolders()
+        private Task<string[]> DiscoverFolders()
         {
             return Task.Run(() =>
             {
-                LoadStatus = "Discovering game/mods location…";
+                LoadStatus = Resources.Configuration.DiscoveringLocations;
                 var sd = new SteamPathDiscoverer();
                 return new[] {sd.GetBasePath()}.Concat(sd.GetModsPaths()).ToArray();
             });
         }
 
-        public async Task<ModInfo[]> GetMods(string[] modFolders)
+        private async Task<ModInfo[]> GetMods(string[] modFolders)
         {
-            LoadStatus = "Determining enabled mods…";
+            LoadStatus = Resources.Configuration.DeterminngEnabledMods;
             var allItems = await Task.WhenAll(modFolders.Select(folder => Task.Run(() =>
             {
                 if (File.Exists(Path.Combine(folder, "mod-list.json")))
@@ -55,9 +60,9 @@ namespace BluePrintAssembler.Domain
             return new[] {new ModInfo {Name = "core", Enabled = true}}.Concat(allItems.SelectMany(x => x)).ToArray();
         }
 
-        public async Task<JObject> GetModSettings(string[] modFolders)
+        private async Task<JObject> GetModSettings(string[] modFolders)
         {
-            LoadStatus = "Reading mod settings…";
+            LoadStatus = Resources.Configuration.ReadingModSettings;
             var allItems = await Task.WhenAll(modFolders.Select(folder => Task.Run(() =>
             {
                 if (File.Exists(Path.Combine(folder, "mod-settings.json")))
@@ -72,15 +77,57 @@ namespace BluePrintAssembler.Domain
             });
         }
 
+        public async Task<Bitmap> GetIcon(IWithIcon iconSource)
+        {
+            if (iconSource.Icon == null && iconSource.Icons == null)
+                iconSource = iconSource.FallbackIcon;
+            if (iconSource == null) return new Bitmap(1, 1);
+            var cacheKey = MD5.Create().ComputeHash(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(new {icon = iconSource.Icon, icon_size = iconSource.IconSize, icons = iconSource.Icons})))
+                .Aggregate(new StringBuilder(), (builder, b) => builder.Append(b.ToString("x2"))).ToString();
+            var cacheFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "BluePrintAssembler", "IconCache", cacheKey + ".png");
+            if (File.Exists(cacheFile))
+                return await Task.Run(() => new Bitmap(cacheFile));
+            var newIcon=await MakeIcon(iconSource);
+            if (!Directory.Exists(Path.GetDirectoryName(cacheFile)))
+                Directory.CreateDirectory(Path.GetDirectoryName(cacheFile));
+            newIcon.Save(cacheFile, ImageFormat.Png);
+            return newIcon;
+        }
+
+        private Task<Bitmap> MakeIcon(IWithIcon iconSource)
+        {
+            return Task.Run(() =>
+            {
+                var src = !string.IsNullOrEmpty(iconSource.Icon)
+                    ? new Dictionary<string, IconPart> {{"1", new IconPart {Icon = iconSource.Icon}}}
+                    : iconSource.Icons;
+                if (src == null) return new Bitmap(1,1);
+                var sz = (int) Math.Min(64, Math.Max(32, iconSource.IconSize));
+                var bmp = new Bitmap(sz,sz);
+
+                using (var dc = Graphics.FromImage(bmp))
+                {
+                    dc.DrawEllipse(Pens.Red,2,2,sz-4,sz-4);
+                    /*foreach (var layer in src.OrderBy(x=>int.Parse(x.Key)))
+                    {
+                        //layer.Value.Scale
+                    }*/
+                }
+
+                return bmp;
+            });
+        }
         public async Task Load()
         {
             var folders = await DiscoverFolders();
             var mods = await GetMods(folders);
             var modSettings = await GetModSettings(folders);
-            LoadStatus = "Locating enabled mods…";
+            LoadStatus = Resources.Configuration.LocatingEnabledMods;
             Task.WaitAll(mods.Where(x => x.Enabled).Select(x => x.MapToFilesystem(folders)).ToArray());
-            LoadStatus = $"Guessing load order…";
+            LoadStatus = Resources.Configuration.GuessingLoadOrder;
             mods = mods.Where(x => x.Enabled).TopologicalSort((a, b) => a.Name != b.Name && ((b.Name == "core") || (b.Name == "base" && a.Name != "core") || (a.Dependencies?.Any(x => x.TrimStart(' ', '?').StartsWith(b.Name)) ?? false))).ToArray();
+            Mods = mods;
 
             var verStamp = mods.Aggregate(new StringBuilder("BluePrintAssembler.").Append(Assembly.GetEntryAssembly().GetName().Version), (builder, mod) => builder.Append('|').Append(mod.Name).Append('.').Append(mod.Version?.ToString() ?? "*"));
             verStamp.Append("|").Append(modSettings.ToString(Formatting.None));
@@ -90,21 +137,24 @@ namespace BluePrintAssembler.Domain
                 "BluePrintAssembler", verStampHash + ".cache");
             if (File.Exists(cacheFile))
             {
-                LoadStatus = "Loading data from cache…";
-                _rawData = JsonConvert.DeserializeObject<RawData>(File.ReadAllText(cacheFile));
+                LoadStatus = Resources.Configuration.LoadingFromCache;
+                RawData = JsonConvert.DeserializeObject<RawData>(File.ReadAllText(cacheFile));
             }
             else
             {
-                LoadStatus = "Loading mods…";
+                LoadStatus = Resources.Configuration.LoadingFromData;
                 var rawData = await LoadMods(modSettings, mods);
-                _rawData = rawData.ToObject<RawData>();
+                RawData = rawData.ToObject<RawData>();
                 if (!Directory.Exists(Path.GetDirectoryName(cacheFile)))
                     Directory.CreateDirectory(Path.GetDirectoryName(cacheFile));
                 File.WriteAllText(cacheFile+"_raw", JsonConvert.SerializeObject(rawData, Formatting.Indented));
-                File.WriteAllText(cacheFile, JsonConvert.SerializeObject(_rawData, Formatting.Indented));
+                File.WriteAllText(cacheFile, JsonConvert.SerializeObject(RawData, Formatting.Indented));
             }
-            LoadStatus = "All done!";
+            LoadStatus = Resources.Configuration.LoadCompleted;
+            Loaded?.Invoke(this, EventArgs.Empty);
         }
+
+        public ModInfo[] Mods { get; set; }
 
         private static readonly Regex LuaPropertyBlacklist = new Regex(@"((_picture)|(achievement)|(bounding_box)|(offsets)|(remnants)|(sound?)|(sprites?)|(graphics?)|(animations?)$)|(^(picture)|(hr_version)|(circuit_wire_connection_point)|(tutorial)|(technology)|(fluid_boxes)|(collision_box)|(noise-expression)|(decorative)|(smoke)|(projectile)|(font)|(unit)|(unit-spawner)|(beam)|(tree)|(tile)|(fire)|(corpse)|(explosion)$)", RegexOptions.Compiled);
         private Task<JObject> LoadMods(JObject modSettings, ModInfo[] mods)
@@ -121,7 +171,7 @@ namespace BluePrintAssembler.Domain
                         mod.LoadPath = mod.BasePath;
                         if (File.Exists(mod.LoadPath))
                         {
-                            LoadStatus = $"Unpacking mod {mod.Name}…";
+                            LoadStatus = string.Format(Resources.Configuration.UnpackingMod, mod.Name);
                             mod.TempPath = mod.LoadPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "BluePrintAssembler", $"UNPACKED_{mod.Name}_{mod.Version?.ToString() ?? "SRC"}");
                             if (!Directory.Exists(mod.LoadPath))
                             {
@@ -156,20 +206,20 @@ namespace BluePrintAssembler.Domain
                         {
                             if (File.Exists(Path.Combine(mod.LoadPath, filename)))
                             {
-                                LoadStatus = string.Format(message, mod.Name);
+                                LoadStatus = string.Format(message, mod.Name, filename);
                                 SetupLuaParser(lua, mods.First(), mod);
                                 lua.DoFile(Path.Combine(mod.LoadPath, filename));
                             }
                         }
                     }
-                    ProcessFileInAllMods("settings.lua","Executing settings.lua from {0}…");
-                    ProcessFileInAllMods("settings-updates.lua","Executing settings-updates.lua from {0}…");
-                    ProcessFileInAllMods("settings-final-fixes.lua","Executing settings-final-fixes.lua from {0}…");
-                    ProcessFileInAllMods("data.lua","Executing data.lua from {0}…");
-                    ProcessFileInAllMods("data-updates.lua","Executing data-updates.lua from {0}…");
-                    ProcessFileInAllMods("data-final-fixes.lua","Executing data-final-fixes.lua from {0}…");
+                    ProcessFileInAllMods("settings.lua",Resources.Configuration.ExecutingLuaFromMod);
+                    ProcessFileInAllMods("settings-updates.lua",Resources.Configuration.ExecutingLuaFromMod);
+                    ProcessFileInAllMods("settings-final-fixes.lua",Resources.Configuration.ExecutingLuaFromMod);
+                    ProcessFileInAllMods("data.lua",Resources.Configuration.ExecutingLuaFromMod);
+                    ProcessFileInAllMods("data-updates.lua",Resources.Configuration.ExecutingLuaFromMod);
+                    ProcessFileInAllMods("data-final-fixes.lua",Resources.Configuration.ExecutingLuaFromMod);
 
-                    LoadStatus = "Extracting raw data…";
+                    LoadStatus = Resources.Configuration.ConvertingData;
                     JObject Convert(LuaTable table)
                     {
                         var rv=new JObject();
@@ -192,7 +242,7 @@ namespace BluePrintAssembler.Domain
                     }
 
                     var rootObject = Convert(lua.GetTable("data.raw"));
-                    LoadStatus = "Removing temporary files…";
+                    LoadStatus = Resources.Configuration.RemovingTempFiles;
                     foreach (var mod in mods)
                     {
                         if (mod.TempPath!=null && mod.TempPath != mod.BasePath)
@@ -217,10 +267,10 @@ namespace BluePrintAssembler.Domain
 
         private void InitLuaParser(Lua lua,ModInfo core, IEnumerable<ModInfo> enabledMods,JObject modSettings)
         {
-            using (var reader = new StreamReader(Assembly.GetEntryAssembly().GetManifestResourceStream("BluePrintAssembler.Lua.Init.lua")))
+            using (var reader = new StreamReader(Assembly.GetEntryAssembly().GetManifestResourceStream("BluePrintAssembler.Resources.Lua.Init.lua")))
                 lua.DoString(reader.ReadToEnd());
             lua.GetFunction("___BPA___pkgpath__add___").Call(Path.Combine(core.BasePath, "lualib"));
-            using (var reader = new StreamReader(Assembly.GetEntryAssembly().GetManifestResourceStream("BluePrintAssembler.Lua.FactorioDefs.lua")))
+            using (var reader = new StreamReader(Assembly.GetEntryAssembly().GetManifestResourceStream("BluePrintAssembler.Resources.Lua.FactorioDefs.lua")))
                 lua.DoString(reader.ReadToEnd());
 
             foreach (var mod in enabledMods)
@@ -289,11 +339,11 @@ namespace BluePrintAssembler.Domain
         {
             var satisfied=new HashSet<BaseProducibleObject>();
             var satisfiedRaw=new HashSet<BaseProducibleObject>();
-            var unsatisfied=new HashSet<BaseProducibleObject>{_rawData.Items["iron-plate"]};
+            var unsatisfied=new HashSet<BaseProducibleObject>{RawData.Items["iron-plate"]};
             while (unsatisfied.Any())
             {
                 var result = unsatisfied.First();
-                var possibleRecipies=_rawData.Recipes.Where(x => x.Value.HasResult(result)).ToArray();
+                var possibleRecipies=RawData.Recipes.Where(x => x.Value.HasResult(result)).ToArray();
                 if (!possibleRecipies.Any())
                 {
                     unsatisfied.Remove(result);
@@ -303,13 +353,13 @@ namespace BluePrintAssembler.Domain
                 {
                     foreach (var r in possibleRecipies.First().Value.CurrentMode.Results)
                     {
-                        var res=_rawData.Get(r.Value.Type, r.Value.Name);
+                        var res=RawData.Get(r.Value.Type, r.Value.Name);
                         satisfied.Add(res);
                         unsatisfied.Remove(res);
                     }
                     foreach (var r in possibleRecipies.First().Value.CurrentMode.Sources)
                     {
-                        var res=_rawData.Get(r.Value.Type, r.Value.Name);
+                        var res=RawData.Get(r.Value.Type, r.Value.Name);
                         if (!satisfied.Contains(res) && !satisfiedRaw.Contains(res))
                         {
                             unsatisfied.Add(res);

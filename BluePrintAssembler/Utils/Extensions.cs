@@ -1,12 +1,30 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Serialization;
 
 namespace BluePrintAssembler.Utils
 {
     public static class Extensions
     {
+        public static T? MinOrDefault<T>(this IEnumerable<T> that)
+            where T : struct, IComparable
+        {
+            if (!that.Any())
+            {
+                return null;
+            }
+            return that.Min();
+        }
+
+        public static T? MaxOrDefault<T>(this IEnumerable<T> that)
+            where T : struct, IComparable
+        {
+            if (!that.Any())
+            {
+                return null;
+            }
+            return that.Max();
+        }
 
         private class TopologicalSortItem<T>
         {
