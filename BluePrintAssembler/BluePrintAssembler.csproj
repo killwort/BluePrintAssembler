@@ -132,6 +132,7 @@
     <Compile Include="Steam\VDFObject.cs" />
     <Compile Include="UI\Parts\DraggableVisual.cs" />
     <Compile Include="UI\Parts\DynamicCanvas.cs" />
+    <Compile Include="UI\Parts\ProducibleItem.cs" />
     <Compile Include="UI\Parts\Recipe.xaml.cs">
       <DependentUpon>Recipe.xaml</DependentUpon>
     </Compile>

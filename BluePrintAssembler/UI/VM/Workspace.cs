@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Windows.Controls;
 using System.Windows.Data;
 using BluePrintAssembler.Domain;
 
@@ -24,7 +26,7 @@ namespace BluePrintAssembler.UI.VM
             var rawData = Configuration.Instance.RawData;
             var satisfied=new HashSet<BaseProducibleObject>();
             var satisfiedRaw=new HashSet<BaseProducibleObject>();
-            var unsatisfied=new HashSet<BaseProducibleObject>{rawData.Items["oxygen-barrel"] };
+            var unsatisfied=new HashSet<BaseProducibleObject>{rawData.Items["iron-plate"] };
             while (unsatisfied.Any())
             {
                 var result = unsatisfied.First();
@@ -54,9 +56,22 @@ namespace BluePrintAssembler.UI.VM
                 }
             }
 
+            var gsz = Math.Floor(Math.Sqrt(Recipes.Count));
+
+            //for (var index = 0; index < Recipes.Count; index++)
+            //{
+             //   Recipes[index].Top = index / gsz * 200;
+              //  Recipes[index].Left = index % gsz * 300;
+            //}
+            
+
             foreach (var s in satisfied)
             {
-                foreach (var pair in Recipes.Where(x => x.MyRecipe.HasResult(s)).SelectMany(egress => Recipes.Where(x => x.MyRecipe.HasSource(s)).Select(ingress => new ProducibleItem {Egress = egress, Ingress = ingress})))
+                foreach (var pair in
+                    Recipes.SelectMany(x => x.Sources.Where(i => i.MyItem.Type == s.Type && i.MyItem.Name == s.Name))
+                        .SelectMany(ingress => Recipes.SelectMany(x => x.Results.Where(i => i.MyItem.Type == s.Type && i.MyItem.Name == s.Name).Select(egress => new ProducibleItem { Ingress = ingress, Egress = egress })))
+                    //Recipes.Where(x => x.MyRecipe.HasResult(s)).SelectMany(egress => Recipes.Where(x => x.MyRecipe.HasSource(s)).Select(ingress => new ProducibleItem {Egress = egress, Ingress = ingress}))
+                    )
                 {
                     pair.MyItem = s;
                     Items.Add(pair);

@@ -122,9 +122,13 @@ namespace BluePrintAssembler
         private void DragStarted()
         {
             _isDragging = true;
-            var ui = MyVisualTreeHelper.GetParentDataContext<DraggableElement>(_draggedDeviceVisual);
-            _dragStartLeft = ui.Left;
-            _dragStartTop = ui.Top;
+            //var ui =(UIElement) MyVisualTreeHelper.GetParentWithDataContext<DraggableElement>(_draggedDeviceVisual);
+            var ui = (UIElement)MyVisualTreeHelper.GetParent<ContentPresenter>(_draggedDeviceVisual);
+            //var container = MyVisualTreeHelper.GetParent<DynamicCanvas>(_draggedDeviceVisual);
+            _dragStartLeft = DynamicCanvas.GetLeft(ui);
+                //ui.Left;
+            _dragStartTop = DynamicCanvas.GetTop(ui);
+                //ui.Top;
 
             SelectElement(_draggedDeviceVisual);
             _overlayElement.IsDragging = true;
@@ -140,9 +144,10 @@ namespace BluePrintAssembler
                 {
                     if (cancelled == false)
                     {
-                        var ui = MyVisualTreeHelper.GetParentDataContext<DraggableElement>(_draggedDeviceVisual);
-                        ui.Top = _dragStartTop + _overlayElement.TopOffset;
-                        ui.Left= _dragStartLeft+ _overlayElement.LeftOffset;
+                        //var ui = (UIElement)MyVisualTreeHelper.GetParentWithDataContext<DraggableElement>(_draggedDeviceVisual);
+                        var ui = (UIElement) MyVisualTreeHelper.GetParent<ContentPresenter>(_draggedDeviceVisual);
+                        DynamicCanvas.SetTop(ui, _dragStartTop + _overlayElement.TopOffset);
+                        DynamicCanvas.SetLeft(ui,_dragStartLeft+ _overlayElement.LeftOffset);
                     }
                     SelectElement(_draggedDeviceVisual);
                     _overlayElement.IsDragging = false;

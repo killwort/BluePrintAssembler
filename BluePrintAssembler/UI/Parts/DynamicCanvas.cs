@@ -201,7 +201,7 @@ namespace BluePrintAssembler.UI.Parts
                     "Left",
                     typeof(double),
                     typeof(DynamicCanvas),
-                    new PropertyMetadata(double.NaN, OnLeftPropertyChanged));
+                    new PropertyMetadata(0.0, OnLeftPropertyChanged));
 
             /// <summary>
             /// LeftProperty property changed handler.
@@ -319,7 +319,7 @@ namespace BluePrintAssembler.UI.Parts
                     "Top",
                     typeof(double),
                     typeof(DynamicCanvas),
-                    new PropertyMetadata(double.NaN, OnTopPropertyChanged));
+                    new PropertyMetadata(0.0, OnTopPropertyChanged));
 
             /// <summary>
             /// TopProperty property changed handler.

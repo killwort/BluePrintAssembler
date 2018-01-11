@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using BluePrintAssembler.Annotations;
 using BluePrintAssembler.Domain;
 using BluePrintAssembler.Utils;
+using Point = System.Windows.Point;
 
 namespace BluePrintAssembler.UI.VM
 {
@@ -11,6 +12,7 @@ namespace BluePrintAssembler.UI.VM
     {
         private NotifyTaskCompletion<Bitmap> _icon;
         private ItemWithAmount _myItem;
+        private Point _connectionPoint;
 
         public ItemWithAmount MyItem
         {
@@ -30,6 +32,18 @@ namespace BluePrintAssembler.UI.VM
         }
 
         public NotifyTaskCompletion<Bitmap> Icon => _icon ?? (_icon = new NotifyTaskCompletion<Bitmap>(Configuration.Instance.GetIcon(Configuration.Instance.RawData.Get(_myItem.Type,_myItem.Name))));
+
+        public Point ConnectionPoint
+        {
+            get { return _connectionPoint; }
+            set
+            {
+                if (value.Equals(_connectionPoint)) return;
+                _connectionPoint = value;
+                OnPropertyChanged();
+            }
+        }
+
         public event PropertyChangedEventHandler PropertyChanged;
 
         [NotifyPropertyChangedInvocator]

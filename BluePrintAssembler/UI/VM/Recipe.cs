@@ -24,8 +24,8 @@ namespace BluePrintAssembler.UI.VM
                 if (Equals(value, _myRecipe)) return;
                 _myRecipe = value;
                 _icon = null;
-                Sources = _myRecipe.Sources?.Select(x => new RecipeIO(x.Value)).ToArray();
-                Results = _myRecipe.Results?.Select(x => new RecipeIO(x.Value)).ToArray();
+                Sources = _myRecipe.CurrentMode.Sources?.Select(x => new RecipeIO(x.Value)).ToArray()??new RecipeIO[0];
+                Results = _myRecipe.CurrentMode.Results?.Select(x => new RecipeIO(x.Value)).ToArray() ?? new RecipeIO[0];
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(Sources));
                 OnPropertyChanged(nameof(Results));

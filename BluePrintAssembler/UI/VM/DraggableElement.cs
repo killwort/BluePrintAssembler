@@ -6,7 +6,7 @@ namespace BluePrintAssembler.UI.VM
 {
     public class DraggableElement:INotifyPropertyChanged
     {
-        private double _left;
+       /* private double _left;
         private double _top;
 
         public double Left
@@ -29,7 +29,7 @@ namespace BluePrintAssembler.UI.VM
                 _top = value;
                 OnPropertyChanged();
             }
-        }
+        }*/
 
         public event PropertyChangedEventHandler PropertyChanged;
 
