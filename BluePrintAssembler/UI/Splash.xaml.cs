@@ -18,8 +18,7 @@ namespace BluePrintAssembler
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            var tsk=Configuration.Instance.Load();
-            tsk.ContinueWith(x => { Configuration.Instance.Test(); });
+            Configuration.Instance.Load();
         }
     }
 }

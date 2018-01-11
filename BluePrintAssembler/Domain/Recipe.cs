@@ -39,13 +39,13 @@ namespace BluePrintAssembler.Domain
         public float IconSize { get; set; }
         [JsonProperty("icons")]
         public Dictionary<string, IconPart> Icons { get; set; }
-
+        [JsonIgnore]
         public IWithIcon FallbackIcon
         {
             get
             {
                 var firstResult = CurrentMode.Results.FirstOrDefault();
-                if (firstResult.Value == null) return null;
+                if (firstResult.Value?.Name == null) return null;
                 return Configuration.Instance.RawData.Get(firstResult.Value.Type, firstResult.Value.Name);
             }
         }

@@ -88,36 +88,112 @@ namespace BluePrintAssembler.Domain
                 "BluePrintAssembler", "IconCache", cacheKey + ".png");
             if (File.Exists(cacheFile))
                 return await Task.Run(() => new Bitmap(cacheFile));
-            var newIcon=await MakeIcon(iconSource);
+            var newIcon = await MakeIcon(iconSource);
             if (!Directory.Exists(Path.GetDirectoryName(cacheFile)))
                 Directory.CreateDirectory(Path.GetDirectoryName(cacheFile));
             newIcon.Save(cacheFile, ImageFormat.Png);
             return newIcon;
         }
 
+        internal class MultiDisposeObject<T>:IDisposable where T:IDisposable
+        {
+            private readonly IDisposable[] _others;
+
+            public MultiDisposeObject(T obj,params IDisposable[] others)
+            {
+                _others = others;
+                Object = obj;
+            }
+            public T Object { get; private set; }
+
+            public void Dispose()
+            {
+                Object.Dispose();
+                foreach(var o in _others)
+                    o.Dispose();
+            }
+        }
+        private MultiDisposeObject<Stream> GetStreamFromMod(string path)
+        {
+            var parts = path.Split(new[] {'\\', '/'}, 2);
+            if (parts[0].StartsWith("__") && parts[0].EndsWith("__"))
+            {
+                var mod = Mods.FirstOrDefault(x => x.Name == parts[0].Trim('_'));
+                if (mod == null) return null;
+                if (File.Exists(mod.BasePath) && mod.BasePath.EndsWith(".zip"))
+                {
+                    var file = File.OpenRead(mod.BasePath);
+                    var za = new ZipArchive(file);
+                    var ent = za.GetEntry($"{mod.Name}_{mod.Version.ToString(3)}/{parts[1]}");
+                    return new MultiDisposeObject<Stream>(ent?.Open(),za,file);
+                }
+                else
+                {
+                    var physicalPath=Path.Combine(mod.BasePath, parts[1]);
+                    if (File.Exists(physicalPath))
+                        return new MultiDisposeObject<Stream>(File.OpenRead(physicalPath));
+                    return null;
+                }
+            }
+            else return null;
+        }
+
         private Task<Bitmap> MakeIcon(IWithIcon iconSource)
         {
-            return Task.Run(() =>
+            return Task.Run(async () =>
             {
                 var src = !string.IsNullOrEmpty(iconSource.Icon)
                     ? new Dictionary<string, IconPart> {{"1", new IconPart {Icon = iconSource.Icon}}}
                     : iconSource.Icons;
-                if (src == null) return new Bitmap(1,1);
+                if (src == null) return new Bitmap(1, 1);
                 var sz = (int) Math.Min(64, Math.Max(32, iconSource.IconSize));
-                var bmp = new Bitmap(sz,sz);
+                var bmp = new Bitmap(sz, sz);
 
                 using (var dc = Graphics.FromImage(bmp))
                 {
-                    dc.DrawEllipse(Pens.Red,2,2,sz-4,sz-4);
-                    /*foreach (var layer in src.OrderBy(x=>int.Parse(x.Key)))
+                    foreach (var layer in src.OrderBy(x => int.Parse(x.Key)))
                     {
+                        using (var iconStream = GetStreamFromMod(layer.Value.Icon))
+                        {
+                            if (iconStream == null) continue;
+                            using (var layerBmp = Image.FromStream(iconStream.Object))
+                            {
+                                var dest = new RectangleF(0, 0, sz, sz);
+                                if (layer.Value.Scale != 1)
+                                {
+                                    dest.Height *= layer.Value.Scale;
+                                    dest.Width *= layer.Value.Scale;
+                                }
+
+                                if(layer.Value.Shift!=null)
+                                    dest.Offset(-layer.Value.Shift.X, -layer.Value.Shift.Y);
+
+                                var attr=new ImageAttributes();
+                                if (layer.Value.Tint != null)
+                                {
+                                    var cm = new ColorMatrix(new[]
+                                    {
+                                        new[] {layer.Value.Tint.R, 0, 0, 0, 0},
+                                        new[] {0, layer.Value.Tint.G, 0, 0, 0},
+                                        new[] {0, 0, layer.Value.Tint.B, 0, 0},
+                                        new[] {0, 0, 0, 1f - layer.Value.Tint.A, 0},
+                                        new[] {0, 0, 0, 0, 1f},
+                                    });
+                                    attr.SetColorMatrix(cm);
+                                }
+
+                                dc.DrawImage(layerBmp, new []{dest.Location,new PointF(dest.Right,dest.Top),new PointF(dest.Left,dest.Bottom)}, new RectangleF(0, 0, layerBmp.Width, layerBmp.Height), GraphicsUnit.Pixel,attr);
+                            }
+                        }
+
                         //layer.Value.Scale
-                    }*/
+                    }
                 }
 
                 return bmp;
             });
         }
+
         public async Task Load()
         {
             var folders = await DiscoverFolders();
@@ -147,16 +223,21 @@ namespace BluePrintAssembler.Domain
                 RawData = rawData.ToObject<RawData>();
                 if (!Directory.Exists(Path.GetDirectoryName(cacheFile)))
                     Directory.CreateDirectory(Path.GetDirectoryName(cacheFile));
-                File.WriteAllText(cacheFile+"_raw", JsonConvert.SerializeObject(rawData, Formatting.Indented));
+                File.WriteAllText(cacheFile + "_raw", JsonConvert.SerializeObject(rawData, Formatting.Indented));
                 File.WriteAllText(cacheFile, JsonConvert.SerializeObject(RawData, Formatting.Indented));
             }
+
             LoadStatus = Resources.Configuration.LoadCompleted;
+
+            await GetIcon(RawData.Items["thorium-ore"]);
+
             Loaded?.Invoke(this, EventArgs.Empty);
         }
 
         public ModInfo[] Mods { get; set; }
 
         private static readonly Regex LuaPropertyBlacklist = new Regex(@"((_picture)|(achievement)|(bounding_box)|(offsets)|(remnants)|(sound?)|(sprites?)|(graphics?)|(animations?)$)|(^(picture)|(hr_version)|(circuit_wire_connection_point)|(tutorial)|(technology)|(fluid_boxes)|(collision_box)|(noise-expression)|(decorative)|(smoke)|(projectile)|(font)|(unit)|(unit-spawner)|(beam)|(tree)|(tile)|(fire)|(corpse)|(explosion)$)", RegexOptions.Compiled);
+
         private Task<JObject> LoadMods(JObject modSettings, ModInfo[] mods)
         {
             return Task.Run(() =>
@@ -176,7 +257,9 @@ namespace BluePrintAssembler.Domain
                             if (!Directory.Exists(mod.LoadPath))
                             {
                                 Directory.CreateDirectory(mod.LoadPath);
-                            }{
+                            }
+
+                            {
                                 using (var zfs = File.OpenRead(mod.BasePath))
                                 using (var ar = new ZipArchive(zfs))
                                 {
@@ -212,17 +295,19 @@ namespace BluePrintAssembler.Domain
                             }
                         }
                     }
-                    ProcessFileInAllMods("settings.lua",Resources.Configuration.ExecutingLuaFromMod);
-                    ProcessFileInAllMods("settings-updates.lua",Resources.Configuration.ExecutingLuaFromMod);
-                    ProcessFileInAllMods("settings-final-fixes.lua",Resources.Configuration.ExecutingLuaFromMod);
-                    ProcessFileInAllMods("data.lua",Resources.Configuration.ExecutingLuaFromMod);
-                    ProcessFileInAllMods("data-updates.lua",Resources.Configuration.ExecutingLuaFromMod);
-                    ProcessFileInAllMods("data-final-fixes.lua",Resources.Configuration.ExecutingLuaFromMod);
+
+                    ProcessFileInAllMods("settings.lua", Resources.Configuration.ExecutingLuaFromMod);
+                    ProcessFileInAllMods("settings-updates.lua", Resources.Configuration.ExecutingLuaFromMod);
+                    ProcessFileInAllMods("settings-final-fixes.lua", Resources.Configuration.ExecutingLuaFromMod);
+                    ProcessFileInAllMods("data.lua", Resources.Configuration.ExecutingLuaFromMod);
+                    ProcessFileInAllMods("data-updates.lua", Resources.Configuration.ExecutingLuaFromMod);
+                    ProcessFileInAllMods("data-final-fixes.lua", Resources.Configuration.ExecutingLuaFromMod);
 
                     LoadStatus = Resources.Configuration.ConvertingData;
+
                     JObject Convert(LuaTable table)
                     {
-                        var rv=new JObject();
+                        var rv = new JObject();
                         foreach (var item in table.Keys)
                         {
                             if (item is string str && LuaPropertyBlacklist.IsMatch(str)) continue;
@@ -238,6 +323,7 @@ namespace BluePrintAssembler.Domain
                             }*/
                             rv.Add(item.ToString(), jvalue);
                         }
+
                         return rv;
                     }
 
@@ -245,7 +331,7 @@ namespace BluePrintAssembler.Domain
                     LoadStatus = Resources.Configuration.RemovingTempFiles;
                     foreach (var mod in mods)
                     {
-                        if (mod.TempPath!=null && mod.TempPath != mod.BasePath)
+                        if (mod.TempPath != null && mod.TempPath != mod.BasePath)
                             Directory.Delete(mod.TempPath, true);
                     }
 
@@ -254,7 +340,7 @@ namespace BluePrintAssembler.Domain
             });
         }
 
-        private void SetupLuaParser(Lua lua,ModInfo core,ModInfo mod)
+        private void SetupLuaParser(Lua lua, ModInfo core, ModInfo mod)
         {
             //Initialize package.path
             lua.GetFunction("___BPA___pkgpath__set___").Call(mod.LoadPath);
@@ -265,7 +351,7 @@ namespace BluePrintAssembler.Domain
             lua.DoString("for name, version in pairs(package.loaded) do package.loaded[name]=false end");
         }
 
-        private void InitLuaParser(Lua lua,ModInfo core, IEnumerable<ModInfo> enabledMods,JObject modSettings)
+        private void InitLuaParser(Lua lua, ModInfo core, IEnumerable<ModInfo> enabledMods, JObject modSettings)
         {
             using (var reader = new StreamReader(Assembly.GetEntryAssembly().GetManifestResourceStream("BluePrintAssembler.Resources.Lua.Init.lua")))
                 lua.DoString(reader.ReadToEnd());
@@ -296,6 +382,7 @@ namespace BluePrintAssembler.Domain
                     {
                         builder.Append(val.Value.ToString(Formatting.None));
                     }
+
                     builder.AppendLine("}");
                 }
                 else
@@ -332,40 +419,6 @@ namespace BluePrintAssembler.Domain
                 if (value == _loadStatus) return;
                 _loadStatus = value;
                 OnPropertyChanged();
-            }
-        }
-
-        public void Test()
-        {
-            var satisfied=new HashSet<BaseProducibleObject>();
-            var satisfiedRaw=new HashSet<BaseProducibleObject>();
-            var unsatisfied=new HashSet<BaseProducibleObject>{RawData.Items["iron-plate"]};
-            while (unsatisfied.Any())
-            {
-                var result = unsatisfied.First();
-                var possibleRecipies=RawData.Recipes.Where(x => x.Value.HasResult(result)).ToArray();
-                if (!possibleRecipies.Any())
-                {
-                    unsatisfied.Remove(result);
-                    satisfiedRaw.Add(result);
-                }
-                else
-                {
-                    foreach (var r in possibleRecipies.First().Value.CurrentMode.Results)
-                    {
-                        var res=RawData.Get(r.Value.Type, r.Value.Name);
-                        satisfied.Add(res);
-                        unsatisfied.Remove(res);
-                    }
-                    foreach (var r in possibleRecipies.First().Value.CurrentMode.Sources)
-                    {
-                        var res=RawData.Get(r.Value.Type, r.Value.Name);
-                        if (!satisfied.Contains(res) && !satisfiedRaw.Contains(res))
-                        {
-                            unsatisfied.Add(res);
-                        }
-                    }
-                }
             }
         }
     }

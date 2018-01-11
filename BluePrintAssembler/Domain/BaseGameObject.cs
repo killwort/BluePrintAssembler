@@ -59,7 +59,7 @@ namespace BluePrintAssembler.Domain
         public float IconSize { get; set; }
         [JsonProperty("icons")]
         public Dictionary<string, IconPart> Icons { get; set; }
-
+        [JsonIgnore]
         public IWithIcon FallbackIcon => null;
 
         /*[JsonExtensionData]
