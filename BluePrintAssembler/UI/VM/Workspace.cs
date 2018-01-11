@@ -24,7 +24,7 @@ namespace BluePrintAssembler.UI.VM
             var rawData = Configuration.Instance.RawData;
             var satisfied=new HashSet<BaseProducibleObject>();
             var satisfiedRaw=new HashSet<BaseProducibleObject>();
-            var unsatisfied=new HashSet<BaseProducibleObject>{rawData.Items["iron-plate"]};
+            var unsatisfied=new HashSet<BaseProducibleObject>{rawData.Items["oxygen-barrel"] };
             while (unsatisfied.Any())
             {
                 var result = unsatisfied.First();

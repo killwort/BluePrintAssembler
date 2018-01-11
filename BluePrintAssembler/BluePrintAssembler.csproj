@@ -135,6 +135,9 @@
     <Compile Include="UI\Parts\Recipe.xaml.cs">
       <DependentUpon>Recipe.xaml</DependentUpon>
     </Compile>
+    <Compile Include="UI\Parts\RecipeIO.xaml.cs">
+      <DependentUpon>RecipeIO.xaml</DependentUpon>
+    </Compile>
     <Compile Include="UI\Parts\SelectionAdorner.cs" />
     <Compile Include="UI\VM\DraggableElement.cs" />
     <Compile Include="UI\VM\ISelectableElement.cs" />
@@ -142,6 +145,7 @@
     <Compile Include="UI\VM\ManualItemSource.cs" />
     <Compile Include="UI\VM\ProducibleItem.cs" />
     <Compile Include="UI\VM\Recipe.cs" />
+    <Compile Include="UI\VM\RecipeIO.cs" />
     <Compile Include="UI\VM\RecipeSelector.cs" />
     <Compile Include="UI\VM\Workspace.cs" />
     <Compile Include="Utils\BitmapToImageSourceConverter.cs" />
@@ -153,6 +157,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="UI\Parts\Recipe.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UI\Parts\RecipeIO.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

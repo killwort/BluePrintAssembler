@@ -7,9 +7,12 @@ using BluePrintAssembler.Utils;
 
 namespace BluePrintAssembler.UI.VM
 {
-    public class ProducibleItem:INotifyPropertyChanged
+    public class RecipeIO:INotifyPropertyChanged
     {
-        public Domain.BaseProducibleObject MyItem
+        private NotifyTaskCompletion<Bitmap> _icon;
+        private ItemWithAmount _myItem;
+
+        public ItemWithAmount MyItem
         {
             get { return _myItem; }
             set
@@ -21,11 +24,12 @@ namespace BluePrintAssembler.UI.VM
             }
         }
 
-        private NotifyTaskCompletion<Bitmap> _icon;
-        private BaseProducibleObject _myItem;
-        public Recipe Egress { get; set; }
-        public Recipe Ingress { get; set; }
-        public NotifyTaskCompletion<Bitmap> Icon => _icon ?? (_icon = new NotifyTaskCompletion<Bitmap>(Configuration.Instance.GetIcon(_myItem)));
+        public RecipeIO(ItemWithAmount myItem)
+        {
+            MyItem = myItem;
+        }
+
+        public NotifyTaskCompletion<Bitmap> Icon => _icon ?? (_icon = new NotifyTaskCompletion<Bitmap>(Configuration.Instance.GetIcon(Configuration.Instance.RawData.Get(_myItem.Type,_myItem.Name))));
         public event PropertyChangedEventHandler PropertyChanged;
 
         [NotifyPropertyChangedInvocator]

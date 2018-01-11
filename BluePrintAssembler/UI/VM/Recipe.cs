@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Drawing;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Interop;
@@ -23,10 +24,16 @@ namespace BluePrintAssembler.UI.VM
                 if (Equals(value, _myRecipe)) return;
                 _myRecipe = value;
                 _icon = null;
+                Sources = _myRecipe.Sources?.Select(x => new RecipeIO(x.Value)).ToArray();
+                Results = _myRecipe.Results?.Select(x => new RecipeIO(x.Value)).ToArray();
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(Sources));
+                OnPropertyChanged(nameof(Results));
             }
         }
 
         public NotifyTaskCompletion<Bitmap> Icon => _icon ?? (_icon = new NotifyTaskCompletion<Bitmap>(Configuration.Instance.GetIcon(_myRecipe)));
+        public RecipeIO[] Sources { get; private set; }
+        public RecipeIO[] Results { get; private set; }
     }
 }
