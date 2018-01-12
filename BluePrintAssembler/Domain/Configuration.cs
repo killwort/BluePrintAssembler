@@ -163,10 +163,14 @@ namespace BluePrintAssembler.Domain
                                 {
                                     dest.Height *= layer.Value.Scale;
                                     dest.Width *= layer.Value.Scale;
+                                    dest.X += (sz - dest.Width) / 2f;
+                                    dest.Y += (sz - dest.Height) / 2f;
                                 }
 
-                                if(layer.Value.Shift!=null)
-                                    dest.Offset(-layer.Value.Shift.X, -layer.Value.Shift.Y);
+                                if (layer.Value.Shift != null)
+                                {
+                                    dest.Offset(layer.Value.Shift.X, layer.Value.Shift.Y);
+                                }
 
                                 var attr=new ImageAttributes();
                                 if (layer.Value.Tint != null)
@@ -229,7 +233,7 @@ namespace BluePrintAssembler.Domain
 
             LoadStatus = Resources.Configuration.LoadCompleted;
 
-            await GetIcon(RawData.Items["thorium-ore"]);
+            //await GetIcon(RawData.Recipes["fill-water-light-mud-barrel"]);
 
             Loaded?.Invoke(this, EventArgs.Empty);
         }

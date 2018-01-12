@@ -14,6 +14,8 @@ namespace BluePrintAssembler.UI.VM
         private ItemWithAmount _myItem;
         private Point _connectionPoint;
 
+        public Recipe Parent { get; }
+
         public ItemWithAmount MyItem
         {
             get { return _myItem; }
@@ -26,8 +28,9 @@ namespace BluePrintAssembler.UI.VM
             }
         }
 
-        public RecipeIO(ItemWithAmount myItem)
+        public RecipeIO(Recipe parent,ItemWithAmount myItem)
         {
+            Parent = parent;
             MyItem = myItem;
         }
 

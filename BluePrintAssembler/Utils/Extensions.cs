@@ -25,7 +25,92 @@ namespace BluePrintAssembler.Utils
             }
             return that.Max();
         }
+        public static T SelectMax<T>(this IEnumerable<T> collection,Func<T,int> selector)
+        {
+            int? oldMax = null;
+            var maxItem = default(T);
+            foreach (var item in collection)
+            {
+                var value = selector(item);
+                if (oldMax != null && oldMax >= value) continue;
+                maxItem = item;
+                oldMax = value;
+            }
+            return maxItem;
+        }
+        public static T SelectMax<T>(this IEnumerable<T> collection,Func<T,int,int> selector)
+        {
+            int? oldMax = null;
+            var maxItem = default(T);
+            var index = 0;
+            foreach (var item in collection)
+            {
+                var value = selector(item,index++);
+                if (oldMax != null && oldMax >= value) continue;
+                maxItem = item;
+                oldMax = value;
+            }
+            return maxItem;
+        }
 
+        public static int FindMax<T>(this IEnumerable<T> collection, Func<T, int, int> selector)
+        {
+            int oldMaxIndex = -1;
+            int oldMaxValue = 0;
+            var index = -1;
+            foreach (var item in collection)
+            {
+                index++;
+                var value = selector(item, index);
+                if (oldMaxIndex != -1 && oldMaxValue >= value) continue;
+                oldMaxValue = value;
+                oldMaxIndex = index;
+            }
+            return oldMaxIndex;
+        }
+        public static int FindMax<T>(this IEnumerable<T> collection, Func<T, int, double> selector)
+        {
+            int oldMaxIndex = -1;
+            double oldMaxValue = 0;
+            var index = -1;
+            foreach (var item in collection)
+            {
+                index++;
+                var value = selector(item, index);
+                if (oldMaxIndex != -1 && oldMaxValue >= value) continue;
+                oldMaxValue = value;
+                oldMaxIndex = index;
+            }
+            return oldMaxIndex;
+        }
+
+        public static T SelectMin<T>(this IEnumerable<T> collection, Func<T, int> selector)
+        {
+            int? oldMin = null;
+            var minItem = default(T);
+            foreach (var item in collection)
+            {
+                var value = selector(item);
+                if (oldMin != null && oldMin <= value) continue;
+                minItem = item;
+                oldMin = value;
+            }
+            return minItem;
+        }
+        public static T SelectMin<T>(this IEnumerable<T> collection, Func<T,int, int> selector)
+        {
+            int? oldMin = null;
+            var minItem = default(T);
+            var index = 0;
+            foreach (var item in collection)
+            {
+                var value = selector(item,index++);
+                if (oldMin != null && oldMin <= value) continue;
+                minItem = item;
+                oldMin = value;
+            }
+            return minItem;
+        }
         private class TopologicalSortItem<T>
         {
             public T Item;

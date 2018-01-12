@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.Versioning;
 using System.Windows;
 using System.Windows.Controls;
@@ -7,6 +9,7 @@ using System.Windows.Input;
 using BluePrintAssembler.UI.Parts;
 using BluePrintAssembler.UI.VM;
 using BluePrintAssembler.Utils;
+using GraphSharp.Algorithms.Layout.Simple.Hierarchical;
 
 namespace BluePrintAssembler
 {
@@ -198,5 +201,27 @@ namespace BluePrintAssembler
         }
 
 
+        private void AutoLayout_Click(object sender, RoutedEventArgs e)
+        {
+            var w = ((UI.VM.MainWindow) DataContext).CurrentWorkspace;
+            var sizes=w.Vertices.ToDictionary(x => x, x => ((UIElement) DrawingArea.ItemContainerGenerator.ContainerFromItem(x)).DesiredSize);
+            var alg = new EfficientSugiyamaLayoutAlgorithm<IGraphNode, UI.VM.ProducibleItem, Workspace>(w, new EfficientSugiyamaLayoutParameters{VertexDistance = 100,PositionMode = 1}, new Dictionary<IGraphNode, Point>(), sizes);
+            alg.Compute();
+            var offX = 0.0;
+            var offY = 0.0;
+            foreach (var p in alg.VertexPositions)
+            {
+                if (p.Value.X < offX) offX = p.Value.X;
+                if (p.Value.Y < offY) offY = p.Value.Y;
+            }
+            foreach (var p in alg.VertexPositions)
+            {
+                var ui=(UIElement)DrawingArea.ItemContainerGenerator.ContainerFromItem(p.Key);
+                DynamicCanvas.SetLeft(ui,p.Value.X-offX);
+                DynamicCanvas.SetTop(ui,p.Value.Y-offY);
+            }
+
+            //MyVisualTreeHelper.GetChild<DynamicCanvas>(DrawingArea).AutoLayout();
+        }
     }
 }

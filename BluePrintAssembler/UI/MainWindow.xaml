@@ -19,6 +19,7 @@
         <ToolBar>
             <ToolBarPanel>
                 <Button Click="Button_Click">Create some elements</Button>
+                <Button Click="AutoLayout_Click">AutoLayout</Button>
             </ToolBarPanel>
         </ToolBar>
         <ScrollViewer  Grid.Row="1" PanningMode="Both" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
@@ -33,7 +34,7 @@
                     <parts:Recipe DataContext="{Binding}"/>
                 </DataTemplate>
                 <DataTemplate DataType="{x:Type vm:ProducibleItem}">
-                    <parts:ProducibleItem DataContext="{Binding}" Connection="{Binding}" StartPoint="{Binding Path=SourcePoint}" EndPoint="{Binding Path=SinkPoint}" StartTangent="{Binding Path=SourceTangent}" EndTangent="{Binding Path=SinkTangent}"/>
+                    <parts:ProducibleItem DataContext="{Binding}" Connection="{Binding}" StartPoint="{Binding Path=Egress.ConnectionPoint, Mode=OneWay}" EndPoint="{Binding Path=Ingress.ConnectionPoint, Mode=OneWay}"/>
                 </DataTemplate>
                 <DataTemplate DataType="{x:Type vm:RecipeSelector}">
                     <Label>SELECT RECIPE</Label>
