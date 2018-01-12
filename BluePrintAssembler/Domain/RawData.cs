@@ -38,6 +38,9 @@ namespace BluePrintAssembler.Domain
         [JsonProperty("assembling-machine")]
         public Dictionary<string, Assembler> Assemblers { get; set; }
 
+        [JsonProperty("locale")]
+        public Dictionary<string, JToken> LocaleData { get; set; }
+
         [JsonExtensionData]
         public Dictionary<string, JToken> ExtraData { get; set; }
 

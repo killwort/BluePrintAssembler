@@ -7,14 +7,11 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
-using System.Resources;
 using System.Runtime.CompilerServices;
-using System.Runtime.Remoting.Channels;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using System.Windows.Media;
 using BluePrintAssembler.Annotations;
 using BluePrintAssembler.Steam;
 using BluePrintAssembler.Utils;
@@ -269,7 +266,7 @@ namespace BluePrintAssembler.Domain
                                 {
                                     foreach (var entry in ar.Entries)
                                     {
-                                        if (!entry.Name.EndsWith(".lua") && entry.Name != "info.json") continue;
+                                        if (!entry.Name.EndsWith(".lua") && !entry.Name.EndsWith("cfg") && entry.Name != "info.json") continue;
                                         var fullPath = Path.Combine(mod.LoadPath, entry.FullName);
                                         if (!Directory.Exists(Path.GetDirectoryName(fullPath)))
                                             Directory.CreateDirectory(Path.GetDirectoryName(fullPath));
@@ -307,6 +304,34 @@ namespace BluePrintAssembler.Domain
                     ProcessFileInAllMods("data-updates.lua", Resources.Configuration.ExecutingLuaFromMod);
                     ProcessFileInAllMods("data-final-fixes.lua", Resources.Configuration.ExecutingLuaFromMod);
 
+                    var locale=new JObject();
+                    foreach (var mod in mods)
+                    {
+                        if (!Directory.Exists(Path.Combine(mod.LoadPath, "locale"))) continue;
+                        foreach (var localeDir in Directory.GetDirectories(Path.Combine(mod.LoadPath, "locale")))
+                        {
+                            var localeProp=(JObject)locale.Property(Path.GetFileName(localeDir))?.Value;
+                            if (localeProp == null)
+                                locale.Add(new JProperty(Path.GetFileName(localeDir), localeProp = new JObject()));
+                            foreach (var localeFile in Directory.GetFiles(localeDir, "*.cfg"))
+                            {
+                                var ini = new Ini(localeFile);
+                                ini.Load();
+                                foreach (var section in ini.GetSections())
+                                {
+                                    var sectionProp=(JObject)localeProp.Property(section)?.Value;
+                                    if (sectionProp == null)
+                                        localeProp.Add(new JProperty(section, sectionProp = new JObject()));
+                                    foreach (var k in ini.GetKeys(section))
+                                        sectionProp[k] = new JValue(ini.GetValue(k, section));
+                                }
+
+                                foreach (var rootKey in ini.GetKeys(""))
+                                    localeProp[rootKey] = new JValue(ini.GetValue(rootKey));
+                            }
+                        }
+                    }
+
                     LoadStatus = Resources.Configuration.ConvertingData;
 
                     JObject Convert(LuaTable table)
@@ -339,6 +364,7 @@ namespace BluePrintAssembler.Domain
                             Directory.Delete(mod.TempPath, true);
                     }
 
+                    rootObject.Add("Locale", locale);
                     return rootObject;
                 }
             });
