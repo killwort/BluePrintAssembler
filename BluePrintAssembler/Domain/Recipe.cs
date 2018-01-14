@@ -4,10 +4,14 @@ using Newtonsoft.Json;
 
 namespace BluePrintAssembler.Domain
 {
-    public class Recipe:RecipeInputsOutputs,IWithIcon
+    public class Recipe:RecipeInputsOutputs,IWithIcon,INamed
     {
+        public string Type => "recipe";
         [JsonProperty("name")]
         public string Name { get; set; }
+        [JsonProperty("localised_name")]
+        public LocalisedString LocalisedName { get; set; }
+
         [JsonProperty("category")]
         public string Category { get; set; }
         [JsonProperty("normal")]

@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using System.Collections.Generic;
+using System.ComponentModel;
 using System.Drawing;
 using System.Runtime.CompilerServices;
 using BluePrintAssembler.Annotations;
@@ -46,6 +47,9 @@ namespace BluePrintAssembler.UI.VM
                 OnPropertyChanged();
             }
         }
+
+        public BaseProducibleObject RealItem => Configuration.Instance.RawData.Get(MyItem.Type, MyItem.Name);
+        public List<ProducibleItem> RelatedItems { get; private set; }
 
         public event PropertyChangedEventHandler PropertyChanged;
 

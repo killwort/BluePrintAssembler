@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.Linq;
@@ -11,17 +12,17 @@ using System.Windows.Media.Imaging;
 using BluePrintAssembler.Annotations;
 using BluePrintAssembler.Domain;
 using BluePrintAssembler.Utils;
+using QuickGraph;
 
 namespace BluePrintAssembler.UI.VM
 {
-    public interface IGraphNode{}
-
-    public interface IGraphEdge
+    public interface IGraphNode
     {
-        IGraphNode Node1 { get; }
-        IGraphNode Node2 { get; }
+        IEnumerable<Edge<IGraphNode>> IngressEdges { get; }
+        IEnumerable<Edge<IGraphNode>> EgressEdges { get; }
     }
-    public class Recipe:ISelectableElement, INotifyPropertyChanged, IGraphNode
+
+    public class Recipe : ISelectableElement, INotifyPropertyChanged, IGraphNode
     {
         private Domain.Recipe _myRecipe;
         private NotifyTaskCompletion<Bitmap> _icon;
@@ -34,8 +35,8 @@ namespace BluePrintAssembler.UI.VM
                 if (Equals(value, _myRecipe)) return;
                 _myRecipe = value;
                 _icon = null;
-                Sources = _myRecipe.CurrentMode.Sources?.Select(x => new RecipeIO(this,x.Value)).ToArray()??new RecipeIO[0];
-                Results = _myRecipe.CurrentMode.Results?.Select(x => new RecipeIO(this,x.Value)).ToArray() ?? new RecipeIO[0];
+                Sources = _myRecipe.CurrentMode.Sources?.Select(x => new RecipeIO(this, x.Value)).ToArray() ?? new RecipeIO[0];
+                Results = _myRecipe.CurrentMode.Results?.Select(x => new RecipeIO(this, x.Value)).ToArray() ?? new RecipeIO[0];
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(Sources));
                 OnPropertyChanged(nameof(Results));
@@ -52,5 +53,8 @@ namespace BluePrintAssembler.UI.VM
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
+
+        public IEnumerable<Edge<IGraphNode>> IngressEdges => Sources.SelectMany(x => x.RelatedItems);
+        public IEnumerable<Edge<IGraphNode>> EgressEdges => Results.SelectMany(x => x.RelatedItems);
     }
 }

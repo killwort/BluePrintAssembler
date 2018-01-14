@@ -9,44 +9,58 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Window.DataContext>
-        <vm:MainWindow/>
+        <vm:MainWindow />
     </Window.DataContext>
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <ToolBar>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <ToolBar Grid.ColumnSpan="2">
             <ToolBarPanel>
                 <Button Click="Button_Click">Create some elements</Button>
                 <Button Click="AutoLayout_Click">AutoLayout</Button>
             </ToolBarPanel>
         </ToolBar>
-        <ScrollViewer  Grid.Row="1" PanningMode="Both" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-        <ItemsControl Name="DrawingArea" ItemsSource="{Binding Path=CurrentWorkspace.RenderableElements}" PreviewMouseLeftButtonDown="DrawingAreaPreviewMouseLeftButtonDown" PreviewMouseMove="DrawingAreaPreviewMouseMove" PreviewMouseLeftButtonUp="DrawingAreaPreviewMouseLeftButtonUp">
-            <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <parts:DynamicCanvas SizeHeightToContent="True" SizeWidthToContent="True" x:Name="DrawingCanvas"></parts:DynamicCanvas>
-                </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
-            <ItemsControl.Resources>
-                <DataTemplate DataType="{x:Type vm:Recipe}">
-                    <parts:Recipe DataContext="{Binding}"/>
-                </DataTemplate>
-                <DataTemplate DataType="{x:Type vm:ProducibleItem}">
-                    <parts:ProducibleItem DataContext="{Binding}" Connection="{Binding}" StartPoint="{Binding Path=Egress.ConnectionPoint, Mode=OneWay}" EndPoint="{Binding Path=Ingress.ConnectionPoint, Mode=OneWay}"/>
-                </DataTemplate>
-                <DataTemplate DataType="{x:Type vm:RecipeSelector}">
-                    <Label>SELECT RECIPE</Label>
-                </DataTemplate>          
-            </ItemsControl.Resources>
-            <!--ItemsControl.ItemContainerStyle>
+        <ScrollViewer Grid.Row="1" PanningMode="Both" HorizontalScrollBarVisibility="Auto"
+                      VerticalScrollBarVisibility="Auto">
+            <ItemsControl Name="DrawingArea" ItemsSource="{Binding Path=CurrentWorkspace.RenderableElements}"
+                          PreviewMouseLeftButtonDown="DrawingAreaPreviewMouseLeftButtonDown"
+                          PreviewMouseMove="DrawingAreaPreviewMouseMove"
+                          PreviewMouseLeftButtonUp="DrawingAreaPreviewMouseLeftButtonUp">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <parts:DynamicCanvas SizeHeightToContent="True" SizeWidthToContent="True"
+                                             x:Name="DrawingCanvas" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.Resources>
+                    <DataTemplate DataType="{x:Type vm:Recipe}">
+                        <parts:Recipe DataContext="{Binding}" />
+                    </DataTemplate>
+                    <DataTemplate DataType="{x:Type vm:ProducibleItem}">
+                        <parts:ProducibleItem DataContext="{Binding}" Connection="{Binding}"
+                                              StartPoint="{Binding Path=Egress.ConnectionPoint, Mode=OneWay}"
+                                              EndPoint="{Binding Path=Ingress.ConnectionPoint, Mode=OneWay}" />
+                    </DataTemplate>
+                    <DataTemplate DataType="{x:Type vm:RecipeSelector}">
+                        <Label>SELECT RECIPE</Label>
+                    </DataTemplate>
+                </ItemsControl.Resources>
+                <!--ItemsControl.ItemContainerStyle>
                 <Style TargetType="{x:Type ContentPresenter}">
                     <Setter Property="parts:DynamicCanvas.Left" Value="{Binding Path=Left}"/>
                     <Setter Property="parts:DynamicCanvas.Top" Value="{Binding Path=Top}"/>
                 </Style>
             </-->
-        </ItemsControl>
+            </ItemsControl>
+        </ScrollViewer>
+        <ScrollViewer Grid.Row="1" Grid.Column="1">
+            <ItemsControl ItemsSource="{Binding CurrentWorkspace.WantedResults}"></ItemsControl>
         </ScrollViewer>
     </Grid>
 </Window>

@@ -231,7 +231,7 @@ namespace BluePrintAssembler.Domain
             LoadStatus = Resources.Configuration.LoadCompleted;
 
             //await GetIcon(RawData.Recipes["fill-water-light-mud-barrel"]);
-
+            var nn=RawData.LocalisedName(RawData.Items["nitric-oxide-barrel"],null);
             Loaded?.Invoke(this, EventArgs.Empty);
         }
 

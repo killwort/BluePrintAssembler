@@ -114,6 +114,7 @@
     <Compile Include="Domain\FluidBox.cs" />
     <Compile Include="Domain\Furnace.cs" />
     <Compile Include="Domain\IconPart.cs" />
+    <Compile Include="Domain\INamed.cs" />
     <Compile Include="Domain\Inserter.cs" />
     <Compile Include="Domain\Item.cs" />
     <Compile Include="Domain\ItemWithAmount.cs" />

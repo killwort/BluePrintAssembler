@@ -8,7 +8,7 @@ using QuickGraph;
 
 namespace BluePrintAssembler.UI.VM
 {
-    public class ProducibleItem:Edge<IGraphNode>,INotifyPropertyChanged,IGraphEdge
+    public class ProducibleItem:Edge<IGraphNode>,INotifyPropertyChanged
     {
         public BaseProducibleObject MyItem
         {
@@ -38,13 +38,12 @@ namespace BluePrintAssembler.UI.VM
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        public IGraphNode Node1 => Egress.Parent;
-        public IGraphNode Node2 => Ingress.Parent;
-
         public ProducibleItem(RecipeIO source, RecipeIO target) : base(source.Parent, target.Parent)
         {
             Egress = source;
             Ingress = target;
+            source.RelatedItems.Add(this);
+            target.RelatedItems.Add(this);
         }
     }
 }

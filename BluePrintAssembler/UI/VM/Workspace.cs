@@ -23,12 +23,14 @@ namespace BluePrintAssembler.UI.VM
         public ObservableCollection<RecipeSelector> UnspecifiedRecipies { get; } = new ObservableCollection<RecipeSelector>();
         public ObservableCollection<ManualItemSource> ManualItemSources { get; } = new ObservableCollection<ManualItemSource>();
 
+        public ObservableCollection<ProducibleItem> WantedResults { get; }=new ObservableCollection<ProducibleItem>();
+
         public void Test()
         {
             var rawData = Configuration.Instance.RawData;
             var satisfied = new HashSet<BaseProducibleObject>();
             var satisfiedRaw = new HashSet<BaseProducibleObject>();
-            var unsatisfied = new HashSet<BaseProducibleObject> {rawData.Items["iron-plate"]};
+            var unsatisfied = new HashSet<BaseProducibleObject> {rawData.Items["inserter"]};
             while (unsatisfied.Any())
             {
                 var result = unsatisfied.First();
@@ -94,44 +96,52 @@ namespace BluePrintAssembler.UI.VM
 
         public bool IsOutEdgesEmpty(IGraphNode v)
         {
-            return !Items.Any(x => x.Egress.Parent == v);
+            return !v.EgressEdges.Any();
+            //return !Items.Any(x => x.Egress.Parent == v);
         }
 
         public int OutDegree(IGraphNode v)
         {
-            return Items.Count(x => x.Egress.Parent == v);
+            return v.EgressEdges.Count();
+            //return Items.Count(x => x.Egress.Parent == v);
         }
 
         public IEnumerable<ProducibleItem> OutEdges(IGraphNode v)
         {
-            return Items.Where(x => x.Egress.Parent == v);
+            return v.EgressEdges.Cast<ProducibleItem>();
+            //return Items.Where(x => x.Egress.Parent == v);
         }
 
         public bool TryGetOutEdges(IGraphNode v, out IEnumerable<ProducibleItem> edges)
         {
-            edges = Items.Where(x => x.Egress.Parent == v);
+            edges = v.EgressEdges.Cast<ProducibleItem>();
             return true;
         }
 
         public ProducibleItem OutEdge(IGraphNode v, int index)
         {
-            return Items.Where(x => x.Egress.Parent == v).Skip(index).First();
+
+            return (ProducibleItem)v.EgressEdges.Skip(index).First();
         }
 
         public bool ContainsEdge(IGraphNode source, IGraphNode target)
         {
-            return Items.Any(x => x.Egress.Parent == source && x.Ingress.Parent == target);
+            return source.EgressEdges.Any(e => target.IngressEdges.Contains(e))
+                   ||
+                   source.IngressEdges.Any(e => target.EgressEdges.Contains(e));
         }
 
         public bool TryGetEdges(IGraphNode source, IGraphNode target, out IEnumerable<ProducibleItem> edges)
         {
-            edges = Items.Where(x => x.Egress.Parent == source && x.Ingress.Parent == target);
+            edges = source.EgressEdges.Where(e => target.IngressEdges.Contains(e)).Cast<ProducibleItem>()
+                .Concat(source.IngressEdges.Where(e => target.EgressEdges.Contains(e)).Cast<ProducibleItem>());
             return true;
         }
 
         public bool TryGetEdge(IGraphNode source, IGraphNode target, out ProducibleItem edge)
         {
-            edge = Items.FirstOrDefault(x => x.Egress.Parent == source && x.Ingress.Parent == target);
+            edge = source.EgressEdges.Where(e => target.IngressEdges.Contains(e)).Cast<ProducibleItem>()
+                .Concat(source.IngressEdges.Where(e => target.EgressEdges.Contains(e)).Cast<ProducibleItem>()).FirstOrDefault();
             return edge != null;
         }
 
@@ -150,33 +160,33 @@ namespace BluePrintAssembler.UI.VM
 
         public bool IsInEdgesEmpty(IGraphNode v)
         {
-            return !Items.Any(x => x.Ingress.Parent == v);
+            return !v.IngressEdges.Any();
         }
 
         public int InDegree(IGraphNode v)
         {
-            return Items.Count(x => x.Ingress.Parent == v);
+            return v.IngressEdges.Count();
         }
 
         public IEnumerable<ProducibleItem> InEdges(IGraphNode v)
         {
-            return Items.Where(x => x.Ingress.Parent == v);
+            return v.IngressEdges.Cast<ProducibleItem>();
         }
 
         public bool TryGetInEdges(IGraphNode v, out IEnumerable<ProducibleItem> edges)
         {
-            edges = Items.Where(x => x.Ingress.Parent == v);
+            edges = v.IngressEdges.Cast<ProducibleItem>();
             return true;
         }
 
         public ProducibleItem InEdge(IGraphNode v, int index)
         {
-            return Items.Where(x => x.Ingress.Parent == v).Skip(index).First();
+            return (ProducibleItem)v.IngressEdges.Skip(index).First();
         }
 
         public int Degree(IGraphNode v)
         {
-            return Items.Count(x => x.Ingress.Parent == v || x.Egress.Parent == v);
+            return v.IngressEdges.Count() + v.EgressEdges.Count();
         }
     }
 }
