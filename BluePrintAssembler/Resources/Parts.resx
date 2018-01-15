@@ -117,7 +117,16 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="AddToFactoryOutput" xml:space="preserve">
+    <value>Add to factory output</value>
+  </data>
+  <data name="ItemCannotBeCrafted" xml:space="preserve">
+    <value>Item cannot be crafted</value>
+  </data>
   <data name="Select" xml:space="preserve">
     <value>Select</value>
+  </data>
+  <data name="SelectRecipeForProducing" xml:space="preserve">
+    <value>Select recipe for producing</value>
   </data>
 </root>

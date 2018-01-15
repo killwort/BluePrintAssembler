@@ -16,23 +16,18 @@ using System.Windows.Shapes;
 namespace BluePrintAssembler.UI.Parts
 {
     /// <summary>
-    /// Interaction logic for SelectRecipe.xaml
+    /// Interaction logic for ManualItemSource.xaml
     /// </summary>
-    public partial class SelectRecipe : UserControl
+    public partial class ManualItemSource : UserControl
     {
-        public SelectRecipe()
+        public ManualItemSource()
         {
             InitializeComponent();
         }
 
-        private void DoUseRecipe(object sender, RoutedEventArgs e)
+        private void AddToFactory(object sender, RoutedEventArgs e)
         {
-            ((VM.SelectRecipe) DataContext).UseRecipe((VM.Recipe) ((FrameworkElement) e.Source).DataContext);
-        }
-
-        private void DoAddToFactory(object sender, RoutedEventArgs e)
-        {
-            ((VM.SelectRecipe) DataContext).AddToFactory();
+            ((VM.ManualItemSource) DataContext).AddToFactory();
         }
     }
 }

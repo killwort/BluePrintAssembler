@@ -9,6 +9,11 @@ namespace BluePrintAssembler.UI.VM
 {
     public class ProducibleItemWithAmount:INotifyPropertyChanged
     {
+        public ProducibleItemWithAmount(BaseProducibleObject item)
+        {
+            _myItem = item;
+        }
+
         private BaseProducibleObject _myItem;
         private NotifyTaskCompletion<Bitmap> _icon;
         private float _amount;

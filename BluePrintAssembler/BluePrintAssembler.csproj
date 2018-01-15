@@ -157,6 +157,9 @@
     </Compile>
     <Compile Include="Steam\VDFObject.cs" />
     <Compile Include="UI\Parts\DynamicCanvas.cs" />
+    <Compile Include="UI\Parts\ManualItemSource.xaml.cs">
+      <DependentUpon>ManualItemSource.xaml</DependentUpon>
+    </Compile>
     <Compile Include="UI\Parts\ProducibleItem.cs" />
     <Compile Include="UI\Parts\Recipe.xaml.cs">
       <DependentUpon>Recipe.xaml</DependentUpon>
@@ -184,6 +187,10 @@
     <Compile Include="Utils\MyVisualTreeHelper.cs" />
     <Compile Include="Utils\NotifyTaskCompletion.cs" />
     <Page Include="UI\MainWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UI\Parts\ManualItemSource.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

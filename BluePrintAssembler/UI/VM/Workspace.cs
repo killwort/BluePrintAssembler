@@ -2,6 +2,7 @@
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
+using System.Windows;
 using System.Windows.Data;
 using BluePrintAssembler.Domain;
 using QuickGraph;
@@ -44,6 +45,7 @@ namespace BluePrintAssembler.UI.VM
                 {
                     var satisfier = new ManualItemSource(result);
                     ProductionNodes.Add(satisfier);
+                    satisfier.AddedToFactory += AddedToFactory;
                     _satisfierNodes[result] = satisfier;
                 }
                 else if (possibleRecipies.Length == 1 || selectedRecipe != null)
@@ -72,6 +74,7 @@ namespace BluePrintAssembler.UI.VM
                     var selector = new SelectRecipe(possibleRecipies.Select(x => x.Value), result);
                     ProductionNodes.Add(selector);
                     selector.RecipeUsed += SelectorRecipeUsed;
+                    selector.AddedToFactory += AddedToFactory;
                     _satisfierNodes[result] = selector;
                 }
             }
@@ -88,6 +91,14 @@ namespace BluePrintAssembler.UI.VM
             }
         }
 
+        private void AddedToFactory(object sender, BaseProducibleObject e)
+        {
+            _satisfierNodes.Remove(e);
+            ProductionNodes.Remove((BaseFlowNode) sender);
+            ExistingSources.Add(new ProducibleItemWithAmount(e));
+            FixProductionFlow();
+        }
+
         private void SelectorRecipeUsed(object sender, Recipe e)
         {
             var satisfier = _satisfierNodes.First(x => x.Value == sender);
@@ -102,8 +113,8 @@ namespace BluePrintAssembler.UI.VM
 
         public CompositeCollection RenderableElements => new CompositeCollection
         {
-            new CollectionContainer {Collection = ProductionNodes},
             new CollectionContainer {Collection = Items},
+            new CollectionContainer {Collection = ProductionNodes},
         };
 
         public ObservableCollection<BaseFlowNode> ProductionNodes { get; } = new ObservableCollection<BaseFlowNode>();
@@ -114,8 +125,8 @@ namespace BluePrintAssembler.UI.VM
 
         public void TestAddItem()
         {
-            WantedResults.Add(new ProducibleItemWithAmount {MyItem = Configuration.Instance.RawData.Items["iron-plate"], Amount = 1});
-            WantedResults.Add(new ProducibleItemWithAmount {MyItem = Configuration.Instance.RawData.Items["copper-plate"], Amount = 1});
+            WantedResults.Add(new ProducibleItemWithAmount(Configuration.Instance.RawData.Items["iron-plate"]) {Amount = 1});
+            WantedResults.Add(new ProducibleItemWithAmount(Configuration.Instance.RawData.Items["copper-plate"]) {Amount = 1});
         }
 
         public bool IsDirected => true;

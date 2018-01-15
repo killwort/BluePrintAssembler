@@ -61,11 +61,38 @@ namespace BluePrintAssembler.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add to factory output.
+        /// </summary>
+        public static string AddToFactoryOutput {
+            get {
+                return ResourceManager.GetString("AddToFactoryOutput", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Item cannot be crafted.
+        /// </summary>
+        public static string ItemCannotBeCrafted {
+            get {
+                return ResourceManager.GetString("ItemCannotBeCrafted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Select.
         /// </summary>
         public static string Select {
             get {
                 return ResourceManager.GetString("Select", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Select recipe for producing.
+        /// </summary>
+        public static string SelectRecipeForProducing {
+            get {
+                return ResourceManager.GetString("SelectRecipeForProducing", resourceCulture);
             }
         }
     }

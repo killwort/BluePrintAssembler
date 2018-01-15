@@ -19,15 +19,21 @@
             <RowDefinition Height="5*" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <Border Grid.Row="0" BorderThickness="0.5" CornerRadius="5" BorderBrush="Black" Cursor="SizeAll"
-                Background="AntiqueWhite">
-            <StackPanel Orientation="Vertical">
-                <TextBlock Text="Select recipe for producing" />
-                <TextBlock
-                    Text="{Binding Path=Results[0].RealItem, Converter={StaticResource NamedToLocalisedNameConverter}}" />
-                <Image
-                    Source="{Binding Path=Results[0].RealItem, Converter={StaticResource BitmapToImageSourceConverter}}" />
-                <ItemsControl ItemsSource="{Binding Path=PossibleRecipes}">
+        <Border Grid.Row="0" BorderThickness="0.5" CornerRadius="5" BorderBrush="Black" Cursor="SizeAll" Background="Azure">
+            <Grid Margin="6">
+                <Grid.RowDefinitions>
+                    <RowDefinition />
+                    <RowDefinition />
+                    <RowDefinition />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition />
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+                <TextBlock Margin="3" VerticalAlignment="Center" Text="{x:Static resources:Parts.SelectRecipeForProducing}" />
+                <TextBlock Margin="3" Grid.Column="1" Grid.Row="0" VerticalAlignment="Center" Text="{Binding Path=Results[0].RealItem, Converter={StaticResource NamedToLocalisedNameConverter}}" />
+                <Button Margin="3" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Content="{x:Static resources:Parts.AddToFactoryOutput}" Click="DoAddToFactory" />
+                <ItemsControl Margin="3 10 3 3" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" ItemsSource="{Binding Path=PossibleRecipes}">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
                             <StackPanel Orientation="Vertical" Grid.IsSharedSizeScope="True" />
@@ -35,12 +41,12 @@
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Grid>
+                            <Grid Margin="3">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition SharedSizeGroup="RecipeInSSG" />
                                     <ColumnDefinition SharedSizeGroup="RecipeNameSSG" />
                                     <ColumnDefinition SharedSizeGroup="RecipeOutSSG" />
-                                    <ColumnDefinition SharedSizeGroup="SelectSSG"/>
+                                    <ColumnDefinition SharedSizeGroup="SelectSSG" />
                                 </Grid.ColumnDefinitions>
                                 <ItemsControl ItemsSource="{Binding Path=Sources}">
                                     <ItemsControl.ItemsPanel>
@@ -54,7 +60,7 @@
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>
-                                <TextBlock Grid.Column="1" VerticalAlignment="Center" Text="→" />
+                                <TextBlock Grid.Column="1" Margin="6" VerticalAlignment="Center" Text="→" />
                                 <ItemsControl Grid.Column="2" ItemsSource="{Binding Path=Results}" x:Name="RecipeList">
                                     <ItemsControl.ItemsPanel>
                                         <ItemsPanelTemplate>
@@ -67,12 +73,12 @@
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>
-                                <Button Grid.Column="3" Content="{x:Static resources:Parts.Select}" Click="DoUseRecipe" />
+                                <Button HorizontalAlignment="Right" Grid.Column="3" Margin="3" VerticalAlignment="Center" Content="{x:Static resources:Parts.Select}" Click="DoUseRecipe" />
                             </Grid>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
-            </StackPanel>
+            </Grid>
         </Border>
         <ItemsControl Grid.Row="1" ItemsSource="{Binding Path=Results}">
             <ItemsControl.ItemsPanel>

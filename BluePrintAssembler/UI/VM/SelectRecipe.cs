@@ -4,10 +4,8 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Windows.Input;
 using BluePrintAssembler.Annotations;
 using BluePrintAssembler.Domain;
-using BluePrintAssembler.Utils;
 using QuickGraph;
 
 namespace BluePrintAssembler.UI.VM
@@ -36,9 +34,40 @@ namespace BluePrintAssembler.UI.VM
         }
 
         public event EventHandler<Recipe> RecipeUsed;
+        public event EventHandler<BaseProducibleObject> AddedToFactory;
         public void UseRecipe(Recipe recipe)
         {
             RecipeUsed?.Invoke(this, recipe);
+        }
+
+        public void AddToFactory()
+        {
+            AddedToFactory?.Invoke(this, Results.First().RealItem);
+        }
+
+        private double _left;
+        private double _top;
+
+        public double LayoutTop
+        {
+            get { return _top; }
+            set
+            {
+                if (value.Equals(_top)) return;
+                _top = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public double LayoutLeft
+        {
+            get { return _left; }
+            set
+            {
+                if (value.Equals(_left)) return;
+                _left = value;
+                OnPropertyChanged();
+            }
         }
     }
 }
