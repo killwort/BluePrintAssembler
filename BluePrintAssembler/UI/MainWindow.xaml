@@ -31,6 +31,8 @@
             <ToolBarPanel>
                 <Button Click="Button_Click">Create some elements</Button>
                 <Button Click="AutoLayout_Click">AutoLayout</Button>
+                <Button Click="Save_Click">Save</Button>
+                <Button Click="Load_Click">Load</Button>
             </ToolBarPanel>
         </ToolBar>
         <ScrollViewer Grid.Column="1" Grid.Row="1" PanningMode="Both" HorizontalScrollBarVisibility="Auto"

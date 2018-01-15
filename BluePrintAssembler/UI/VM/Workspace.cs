@@ -1,15 +1,17 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
-using System.Windows;
+using System.Runtime.Serialization;
 using System.Windows.Data;
 using BluePrintAssembler.Domain;
 using QuickGraph;
 
 namespace BluePrintAssembler.UI.VM
 {
-    public class Workspace : IBidirectionalGraph<IGraphNode, ProducibleItem>
+    [Serializable]
+    public class Workspace : IBidirectionalGraph<IGraphNode, ProducibleItem>,ISerializable
     {
         public Workspace()
         {
@@ -17,9 +19,11 @@ namespace BluePrintAssembler.UI.VM
             ExistingSources.CollectionChanged += CallFixProductionFlow;
         }
 
+        
 
         private readonly Dictionary<BaseProducibleObject, BaseFlowNode> _satisfierNodes = new Dictionary<BaseProducibleObject, BaseFlowNode>();
         private readonly Dictionary<BaseProducibleObject, Domain.Recipe> _selectedRecipies = new Dictionary<BaseProducibleObject, Domain.Recipe>();
+
 
         private void CallFixProductionFlow(object sender, NotifyCollectionChangedEventArgs e)
         {
@@ -45,7 +49,7 @@ namespace BluePrintAssembler.UI.VM
                 {
                     var satisfier = new ManualItemSource(result);
                     ProductionNodes.Add(satisfier);
-                    satisfier.AddedToFactory += AddedToFactory;
+                    Bind(satisfier);
                     _satisfierNodes[result] = satisfier;
                 }
                 else if (possibleRecipies.Length == 1 || selectedRecipe != null)
@@ -73,8 +77,7 @@ namespace BluePrintAssembler.UI.VM
                 {
                     var selector = new SelectRecipe(possibleRecipies.Select(x => x.Value), result);
                     ProductionNodes.Add(selector);
-                    selector.RecipeUsed += SelectorRecipeUsed;
-                    selector.AddedToFactory += AddedToFactory;
+                    Bind(selector);
                     _satisfierNodes[result] = selector;
                 }
             }
@@ -226,6 +229,59 @@ namespace BluePrintAssembler.UI.VM
         public int Degree(IGraphNode v)
         {
             return v.IngressEdges.Count() + v.EgressEdges.Count();
+        }
+
+        [Serializable]
+        public class SelectedRecipe:ISerializable
+        {
+            public KeyValuePair<BaseProducibleObject, Domain.Recipe> KV { get; }
+
+            public SelectedRecipe(KeyValuePair<BaseProducibleObject, Domain.Recipe> kv)
+            {
+                this.KV = kv;
+            }
+
+            public SelectedRecipe(SerializationInfo info, StreamingContext context)
+            {
+                KV=new KeyValuePair<BaseProducibleObject, Domain.Recipe>(
+                    Configuration.Instance.RawData.Get(info.GetString("Type"),info.GetString("Name")),
+                    Configuration.Instance.RawData.Recipes[info.GetString("Recipe")]
+                    );
+            }
+
+            public void GetObjectData(SerializationInfo info, StreamingContext context)
+            {
+                info.AddValue("Type",KV.Key.Type);
+                info.AddValue("Name", KV.Key.Name);
+                info.AddValue("Recipe",KV.Value.Name);
+            }
+        }
+        public void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            info.AddValue("Nodes", ProductionNodes.ToArray());
+            info.AddValue("SelectedRecipes", _selectedRecipies.Select(x=>new SelectedRecipe(x)).ToArray());
+            info.AddValue("Egress",WantedResults.ToArray());
+            info.AddValue("Ingress",ExistingSources.ToArray());
+        }
+        public Workspace(SerializationInfo info, StreamingContext context)
+        {
+            ProductionNodes=new ObservableCollection<BaseFlowNode>((BaseFlowNode[])info.GetValue("Nodes", typeof(BaseFlowNode[])));
+            foreach (var node in ProductionNodes)
+                Bind(node);
+            _satisfierNodes=ProductionNodes.SelectMany(x => x.Results).ToLookup(x => x.RealItem, x => x.Parent).ToDictionary(x=>x.Key,x=>x.First());
+            _selectedRecipies = ((SelectedRecipe[]) info.GetValue("SelectedRecipes", typeof(SelectedRecipe[])))
+                .ToDictionary(x => x.KV.Key, x => x.KV.Value);
+            WantedResults=new ObservableCollection<ProducibleItemWithAmount>(((ProducibleItemWithAmount[])info.GetValue("Egress",typeof(ProducibleItemWithAmount[]))));
+            ExistingSources = new ObservableCollection<ProducibleItemWithAmount>(((ProducibleItemWithAmount[]) info.GetValue("Ingress", typeof(ProducibleItemWithAmount[]))));
+            FixProductionFlow();
+        }
+
+        private void Bind(BaseFlowNode selector)
+        {
+            if (selector is SelectRecipe r)
+                r.RecipeUsed += SelectorRecipeUsed;
+            if(selector is IAddableToFactory f)
+                f.AddedToFactory += AddedToFactory;
         }
     }
 }

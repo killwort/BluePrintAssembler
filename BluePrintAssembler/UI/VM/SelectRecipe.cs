@@ -1,16 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using BluePrintAssembler.Annotations;
+using System.Runtime.Serialization;
 using BluePrintAssembler.Domain;
 using QuickGraph;
 
 namespace BluePrintAssembler.UI.VM
 {
-    public class SelectRecipe: BaseFlowNode, ISelectableElement, INotifyPropertyChanged
+    [Serializable]
+    public class SelectRecipe: BaseFlowNode, ISelectableElement, IAddableToFactory
     {
 
         public SelectRecipe(IEnumerable<Domain.Recipe> enumerable, BaseProducibleObject result)
@@ -19,19 +18,25 @@ namespace BluePrintAssembler.UI.VM
             Results = new[] {new RecipeIO(this, new ItemWithAmount {Name = result.Name, Type = result.Type, Amount = 1, Probability = 1})};
         }
 
+        public SelectRecipe(SerializationInfo info, StreamingContext context) : base(info, context)
+        {
+            Results = new[] { new RecipeIO(this, new ItemWithAmount { Name = info.GetString("Name"), Type = info.GetString("Type"), Amount = 1, Probability = 1 }) };
+            PossibleRecipes = new ObservableCollection<Recipe>(((string[]) info.GetValue("Possibilities", typeof(string[]))).Select(x => new Recipe(Configuration.Instance.RawData.Recipes[x])));
+        }
+
+        public override void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            base.GetObjectData(info, context);
+            info.AddValue("Type",Results.First().MyItem.Type);
+            info.AddValue("Name", Results.First().MyItem.Type);
+            info.AddValue("Possibilities",PossibleRecipes.Select(x=>x.MyRecipe.Name).ToArray());
+        }
 
         public ObservableCollection<Recipe> PossibleRecipes { get; }
 
 
         public override IEnumerable<Edge<IGraphNode>> IngressEdges=>new Edge<IGraphNode>[0];
         public override IEnumerable<Edge<IGraphNode>> EgressEdges => Results.SelectMany(x => x.RelatedItems);
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        [NotifyPropertyChangedInvocator]
-        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
 
         public event EventHandler<Recipe> RecipeUsed;
         public event EventHandler<BaseProducibleObject> AddedToFactory;
@@ -43,31 +48,6 @@ namespace BluePrintAssembler.UI.VM
         public void AddToFactory()
         {
             AddedToFactory?.Invoke(this, Results.First().RealItem);
-        }
-
-        private double _left;
-        private double _top;
-
-        public double LayoutTop
-        {
-            get { return _top; }
-            set
-            {
-                if (value.Equals(_top)) return;
-                _top = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public double LayoutLeft
-        {
-            get { return _left; }
-            set
-            {
-                if (value.Equals(_left)) return;
-                _left = value;
-                OnPropertyChanged();
-            }
         }
     }
 }

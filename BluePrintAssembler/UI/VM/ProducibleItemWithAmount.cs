@@ -1,13 +1,16 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.ComponentModel;
 using System.Drawing;
 using System.Runtime.CompilerServices;
+using System.Runtime.Serialization;
 using BluePrintAssembler.Annotations;
 using BluePrintAssembler.Domain;
 using BluePrintAssembler.Utils;
 
 namespace BluePrintAssembler.UI.VM
 {
-    public class ProducibleItemWithAmount:INotifyPropertyChanged
+    [Serializable]
+    public class ProducibleItemWithAmount:INotifyPropertyChanged,ISerializable
     {
         public ProducibleItemWithAmount(BaseProducibleObject item)
         {
@@ -49,6 +52,18 @@ namespace BluePrintAssembler.UI.VM
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        public void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            info.AddValue("Type",MyItem.Type);
+            info.AddValue("Name", MyItem.Name);
+            info.AddValue("Amount", Amount);
+        }
+        public ProducibleItemWithAmount(SerializationInfo info, StreamingContext context)
+        {
+            MyItem=Configuration.Instance.RawData.Get(info.GetString("Type"),info.GetString("Name"));
+            Amount=info.GetSingle("Amount");
         }
     }
 }

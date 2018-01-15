@@ -172,6 +172,7 @@
       <DependentUpon>SelectRecipe.xaml</DependentUpon>
     </Compile>
     <Compile Include="UI\VM\BaseFlowNode.cs" />
+    <Compile Include="UI\VM\IAddableToFactory.cs" />
     <Compile Include="UI\VM\IGraphNode.cs" />
     <Compile Include="UI\VM\ISelectableElement.cs" />
     <Compile Include="UI\VM\MainWindow.cs" />
