@@ -1,0 +1,90 @@
+﻿<UserControl
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:BluePrintAssembler.UI.Parts"
+    xmlns:vm="clr-namespace:BluePrintAssembler.UI.VM"
+    xmlns:utils="clr-namespace:BluePrintAssembler.Utils"
+    xmlns:resources="clr-namespace:BluePrintAssembler.Resources"
+    x:Class="BluePrintAssembler.UI.Parts.SelectRecipe"
+    mc:Ignorable="d"
+    d:DesignHeight="300" d:DesignWidth="800">
+    <UserControl.Resources>
+        <utils:BitmapToImageSourceConverter x:Key="BitmapToImageSourceConverter" />
+        <utils:NamedToLocalisedNameConverter x:Key="NamedToLocalisedNameConverter" />
+    </UserControl.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="5*" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <Border Grid.Row="0" BorderThickness="0.5" CornerRadius="5" BorderBrush="Black" Cursor="SizeAll"
+                Background="AntiqueWhite">
+            <StackPanel Orientation="Vertical">
+                <TextBlock Text="Select recipe for producing" />
+                <TextBlock
+                    Text="{Binding Path=Results[0].RealItem, Converter={StaticResource NamedToLocalisedNameConverter}}" />
+                <Image
+                    Source="{Binding Path=Results[0].RealItem, Converter={StaticResource BitmapToImageSourceConverter}}" />
+                <ItemsControl ItemsSource="{Binding Path=PossibleRecipes}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Vertical" Grid.IsSharedSizeScope="True" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition SharedSizeGroup="RecipeInSSG" />
+                                    <ColumnDefinition SharedSizeGroup="RecipeNameSSG" />
+                                    <ColumnDefinition SharedSizeGroup="RecipeOutSSG" />
+                                    <ColumnDefinition SharedSizeGroup="SelectSSG"/>
+                                </Grid.ColumnDefinitions>
+                                <ItemsControl ItemsSource="{Binding Path=Sources}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <StackPanel Orientation="Horizontal" />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <local:RecipeIO HorizontalAlignment="Center" DataContext="{Binding}" />
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                                <TextBlock Grid.Column="1" VerticalAlignment="Center" Text="→" />
+                                <ItemsControl Grid.Column="2" ItemsSource="{Binding Path=Results}" x:Name="RecipeList">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <StackPanel Orientation="Horizontal" />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <local:RecipeIO HorizontalAlignment="Center" DataContext="{Binding}" />
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                                <Button Grid.Column="3" Content="{x:Static resources:Parts.Select}" Click="DoUseRecipe" />
+                            </Grid>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </Border>
+        <ItemsControl Grid.Row="1" ItemsSource="{Binding Path=Results}">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <UniformGrid Rows="1" />
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <local:RecipeIO HorizontalAlignment="Center" DataContext="{Binding}" />
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+    </Grid>
+</UserControl>

@@ -1,17 +1,17 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
 
 namespace BluePrintAssembler.Domain
 {
-    public class Recipe:RecipeInputsOutputs,IWithIcon,INamed
+    public class Recipe:RecipeInputsOutputs,IWithIcon,INamed,IAltNames
     {
         public string Type => "recipe";
         [JsonProperty("name")]
         public string Name { get; set; }
         [JsonProperty("localised_name")]
         public LocalisedString LocalisedName { get; set; }
-
         [JsonProperty("category")]
         public string Category { get; set; }
         [JsonProperty("normal")]
@@ -53,5 +53,7 @@ namespace BluePrintAssembler.Domain
                 return Configuration.Instance.RawData.Get(firstResult.Value.Type, firstResult.Value.Name);
             }
         }
+
+        public override IEnumerable<Tuple<string, string>> AlternativeNames => CurrentMode == this ? base.AlternativeNames : CurrentMode.AlternativeNames;
     }
 }

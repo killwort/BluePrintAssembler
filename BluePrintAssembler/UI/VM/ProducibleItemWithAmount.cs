@@ -4,12 +4,16 @@ using System.Runtime.CompilerServices;
 using BluePrintAssembler.Annotations;
 using BluePrintAssembler.Domain;
 using BluePrintAssembler.Utils;
-using QuickGraph;
 
 namespace BluePrintAssembler.UI.VM
 {
-    public class ProducibleItem:Edge<IGraphNode>,INotifyPropertyChanged
+    public class ProducibleItemWithAmount:INotifyPropertyChanged
     {
+        private BaseProducibleObject _myItem;
+        private NotifyTaskCompletion<Bitmap> _icon;
+        private float _amount;
+        public NotifyTaskCompletion<Bitmap> Icon => _icon ?? (_icon = new NotifyTaskCompletion<Bitmap>(Configuration.Instance.GetIcon(_myItem)));
+
         public BaseProducibleObject MyItem
         {
             get { return _myItem; }
@@ -19,32 +23,27 @@ namespace BluePrintAssembler.UI.VM
                 _myItem = value;
                 _icon = null;
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(Icon));
             }
         }
 
-        private NotifyTaskCompletion<Bitmap> _icon;
-        private BaseProducibleObject _myItem;
+        public float Amount
+        {
+            get { return _amount; }
+            set
+            {
+                if (value.Equals(_amount)) return;
+                _amount = value;
+                OnPropertyChanged();
+            }
+        }
 
-        public RecipeIO Egress { get; set; }
-        public RecipeIO Ingress { get; set; }
-
-        
-        public NotifyTaskCompletion<Bitmap> Icon => _icon ?? (_icon = new NotifyTaskCompletion<Bitmap>(Configuration.Instance.GetIcon(_myItem)));
         public event PropertyChangedEventHandler PropertyChanged;
 
         [NotifyPropertyChangedInvocator]
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
-        public ProducibleItem(RecipeIO source, RecipeIO target, BaseProducibleObject item) : base(source.Parent, target.Parent)
-        {
-            Egress = source;
-            Ingress = target;
-            MyItem = item;
-            source.RelatedItems.Add(this);
-            target.RelatedItems.Add(this);
         }
     }
 }

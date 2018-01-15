@@ -4,11 +4,6 @@ using System.ComponentModel;
 using System.Drawing;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Interop;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
 using BluePrintAssembler.Annotations;
 using BluePrintAssembler.Domain;
 using BluePrintAssembler.Utils;
@@ -16,16 +11,39 @@ using QuickGraph;
 
 namespace BluePrintAssembler.UI.VM
 {
-    public interface IGraphNode
-    {
-        IEnumerable<Edge<IGraphNode>> IngressEdges { get; }
-        IEnumerable<Edge<IGraphNode>> EgressEdges { get; }
-    }
-
-    public class Recipe : ISelectableElement, INotifyPropertyChanged, IGraphNode
+    public class Recipe : BaseFlowNode, ISelectableElement, INotifyPropertyChanged, IGraphNode
     {
         private Domain.Recipe _myRecipe;
         private NotifyTaskCompletion<Bitmap> _icon;
+        private double _left;
+        private double _top;
+
+        public double LayoutTop
+        {
+            get { return _top; }
+            set
+            {
+                if (value.Equals(_top)) return;
+                _top = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public double LayoutLeft
+        {
+            get { return _left; }
+            set
+            {
+                if (value.Equals(_left)) return;
+                _left = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public Recipe(Domain.Recipe value)
+        {
+            MyRecipe = value;
+        }
 
         public Domain.Recipe MyRecipe
         {
@@ -44,8 +62,8 @@ namespace BluePrintAssembler.UI.VM
         }
 
         public NotifyTaskCompletion<Bitmap> Icon => _icon ?? (_icon = new NotifyTaskCompletion<Bitmap>(Configuration.Instance.GetIcon(_myRecipe)));
-        public RecipeIO[] Sources { get; private set; }
-        public RecipeIO[] Results { get; private set; }
+        /*public override RecipeIO[] Sources { get; private set; }
+        public override RecipeIO[] Results { get; private set; }*/
         public event PropertyChangedEventHandler PropertyChanged;
 
         [NotifyPropertyChangedInvocator]
@@ -54,7 +72,8 @@ namespace BluePrintAssembler.UI.VM
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        public IEnumerable<Edge<IGraphNode>> IngressEdges => Sources.SelectMany(x => x.RelatedItems);
-        public IEnumerable<Edge<IGraphNode>> EgressEdges => Results.SelectMany(x => x.RelatedItems);
+        public float Speed => (float) Math.Round(1f / MyRecipe.CurrentMode.BaseProductionTime, 1);
+        public override IEnumerable<Edge<IGraphNode>> IngressEdges => Sources.SelectMany(x => x.RelatedItems);
+        public override IEnumerable<Edge<IGraphNode>> EgressEdges => Results.SelectMany(x => x.RelatedItems);
     }
 }

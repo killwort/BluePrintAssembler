@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows.Navigation;
 using Newtonsoft.Json;
@@ -60,6 +61,18 @@ namespace BluePrintAssembler.Domain
         }
 
         private static Regex FormattingRegex=new Regex(@"__(?<num>\d+)__",RegexOptions.Compiled);
+
+        private class AltNameWrapper : INamed
+        {
+            public AltNameWrapper(Tuple<string, string> src)
+            {
+                Type = src.Item1;
+                Name = src.Item2;
+            }
+            public string Type { get; }
+            public string Name { get; }
+            public LocalisedString LocalisedName { get; }
+        }
         public string LocalisedName(INamed obj, CultureInfo cultureInfo)
         {
             if(cultureInfo==null)cultureInfo=CultureInfo.CurrentUICulture;
@@ -81,6 +94,11 @@ namespace BluePrintAssembler.Domain
             }
 
             var fmt = GetString(str.Format);
+            if (fmt == null && obj is IAltNames anames)
+            {
+                var altName=anames.AlternativeNames.Select(x => LocalisedName(new AltNameWrapper(x), cultureInfo)).FirstOrDefault(x => x != null);
+                if (altName != null) return altName;
+            }
             if (fmt == null) return str.Format;
             if (str.Arguments == null) return fmt;
             return FormattingRegex.Replace(fmt, (m) =>

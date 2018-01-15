@@ -113,6 +113,7 @@
     <Compile Include="Domain\Fluid.cs" />
     <Compile Include="Domain\FluidBox.cs" />
     <Compile Include="Domain\Furnace.cs" />
+    <Compile Include="Domain\IAltNames.cs" />
     <Compile Include="Domain\IconPart.cs" />
     <Compile Include="Domain\INamed.cs" />
     <Compile Include="Domain\Inserter.cs" />
@@ -130,6 +131,16 @@
     <Compile Include="Domain\RecipeInputsOutputs.cs" />
     <Compile Include="Domain\TransportBelt.cs" />
     <Compile Include="Ini.cs" />
+    <Compile Include="Resources\MainWindow.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>MainWindow.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Resources\Parts.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Parts.resx</DependentUpon>
+    </Compile>
     <Compile Include="UI\MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
     </Compile>
@@ -145,7 +156,6 @@
       <DependentUpon>Splash.resx</DependentUpon>
     </Compile>
     <Compile Include="Steam\VDFObject.cs" />
-    <Compile Include="UI\Parts\DraggableVisual.cs" />
     <Compile Include="UI\Parts\DynamicCanvas.cs" />
     <Compile Include="UI\Parts\ProducibleItem.cs" />
     <Compile Include="UI\Parts\Recipe.xaml.cs">
@@ -155,13 +165,19 @@
       <DependentUpon>RecipeIO.xaml</DependentUpon>
     </Compile>
     <Compile Include="UI\Parts\SelectionAdorner.cs" />
+    <Compile Include="UI\Parts\SelectRecipe.xaml.cs">
+      <DependentUpon>SelectRecipe.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\VM\BaseFlowNode.cs" />
+    <Compile Include="UI\VM\IGraphNode.cs" />
     <Compile Include="UI\VM\ISelectableElement.cs" />
     <Compile Include="UI\VM\MainWindow.cs" />
     <Compile Include="UI\VM\ManualItemSource.cs" />
     <Compile Include="UI\VM\ProducibleItem.cs" />
+    <Compile Include="UI\VM\ProducibleItemWithAmount.cs" />
     <Compile Include="UI\VM\Recipe.cs" />
     <Compile Include="UI\VM\RecipeIO.cs" />
-    <Compile Include="UI\VM\RecipeSelector.cs" />
+    <Compile Include="UI\VM\SelectRecipe.cs" />
     <Compile Include="UI\VM\Workspace.cs" />
     <Compile Include="Utils\BitmapToImageSourceConverter.cs" />
     <Compile Include="Utils\Extensions.cs" />
@@ -176,6 +192,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="UI\Parts\RecipeIO.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UI\Parts\SelectRecipe.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -212,6 +232,14 @@
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\MainWindow.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>MainWindow.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\Parts.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>Parts.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <EmbeddedResource Include="Resources\Splash.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>

@@ -39,6 +39,21 @@ namespace BluePrintAssembler.Utils
             return (T)d;
         }
 
+        public static FrameworkElement GetParent(FrameworkElement d, Func<FrameworkElement,bool> firstMatchPredicate, Func<FrameworkElement,bool> lastMatchPredicate)
+        {
+            FrameworkElement lastGood = null;
+            while (d != null)
+            {
+                if (firstMatchPredicate(d)) return d;
+                if (lastMatchPredicate(d))
+                    lastGood = d;
+                else if (lastGood != null)
+                    break;
+                d = (FrameworkElement) VisualTreeHelper.GetParent(d);
+            }
+            return lastGood;
+        }
+
         public static T GetChild<T>(DependencyObject depObj) where T : DependencyObject
         {
             if (depObj != null)
@@ -57,14 +72,14 @@ namespace BluePrintAssembler.Utils
             }
             return null;
         }
-        public static T GetChild<T>(DependencyObject depObj,Func<T,bool> predicate) where T : DependencyObject
+        public static T GetChild<T>(DependencyObject depObj,Func<T,bool> firstMatchPredicate) where T : DependencyObject
         {
             if (depObj != null)
             {
                 for (var i = 0; i < VisualTreeHelper.GetChildrenCount(depObj); i++)
                 {
                     var child = VisualTreeHelper.GetChild(depObj, i);
-                    if (child != null && child is T && predicate((T)child))
+                    if (child != null && child is T && firstMatchPredicate((T)child))
                     {
                         return (T)child;
                     }

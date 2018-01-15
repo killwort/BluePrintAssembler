@@ -15,7 +15,7 @@ namespace BluePrintAssembler.UI.VM
         private ItemWithAmount _myItem;
         private Point _connectionPoint;
 
-        public Recipe Parent { get; }
+        public BaseFlowNode Parent { get; }
 
         public ItemWithAmount MyItem
         {
@@ -29,7 +29,7 @@ namespace BluePrintAssembler.UI.VM
             }
         }
 
-        public RecipeIO(Recipe parent,ItemWithAmount myItem)
+        public RecipeIO(BaseFlowNode parent,ItemWithAmount myItem)
         {
             Parent = parent;
             MyItem = myItem;
@@ -49,7 +49,7 @@ namespace BluePrintAssembler.UI.VM
         }
 
         public BaseProducibleObject RealItem => Configuration.Instance.RawData.Get(MyItem.Type, MyItem.Name);
-        public List<ProducibleItem> RelatedItems { get; private set; }
+        public List<ProducibleItem> RelatedItems { get; private set; } = new List<ProducibleItem>();
 
         public event PropertyChangedEventHandler PropertyChanged;
 

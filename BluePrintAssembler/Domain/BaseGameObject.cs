@@ -1,15 +1,19 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Newtonsoft.Json;
 
 namespace BluePrintAssembler.Domain
 {
-    public class BaseGameObject : IWithIcon, INamed
+    public class BaseGameObject : IWithIcon, INamed, IAltNames
     {
         [JsonProperty("name")]
         public string Name { get; set; }
 
         [JsonProperty("localised_name")]
         public LocalisedString LocalisedName { get; set; }
+
+        [JsonProperty("place_result")]
+        public string EntityName { get; set; }
 
         protected bool Equals(BaseGameObject other)
         {
@@ -68,8 +72,7 @@ namespace BluePrintAssembler.Domain
 
         [JsonIgnore]
         public IWithIcon FallbackIcon => null;
-
-        /*[JsonExtensionData]
-        public Dictionary<string,JToken> ExtraData { get; set; }*/
+        [JsonIgnore]
+        public IEnumerable<Tuple<string, string>> AlternativeNames => string.IsNullOrEmpty(EntityName) ? new Tuple<string, string>[0] : new[] {Tuple.Create("entity", EntityName)};
     }
 }

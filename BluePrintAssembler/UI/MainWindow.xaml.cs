@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Versioning;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
@@ -9,6 +8,7 @@ using System.Windows.Input;
 using BluePrintAssembler.UI.Parts;
 using BluePrintAssembler.UI.VM;
 using BluePrintAssembler.Utils;
+using GraphSharp;
 using GraphSharp.Algorithms.Layout.Simple.Hierarchical;
 
 namespace BluePrintAssembler
@@ -25,7 +25,7 @@ namespace BluePrintAssembler
         private double _dragStartLeft;
         private double _dragStartTop;
         private SelectionAdorner _overlayElement;
-        private object _updaterLock=new object();
+        private object _updaterLock = new object();
 
         public MainWindow()
         {
@@ -34,46 +34,26 @@ namespace BluePrintAssembler
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            ((UI.VM.MainWindow)DataContext).CurrentWorkspace.Test();
+            ((UI.VM.MainWindow) DataContext).CurrentWorkspace.TestAddItem();
         }
 
         private void DrawingAreaPreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            var vsender = (FrameworkElement)MyVisualTreeHelper.GetParentWithDataContext<ISelectableElement>((FrameworkElement) e.OriginalSource);
+            var vsender = MyVisualTreeHelper.GetParent(((FrameworkElement) e.OriginalSource), x => x.Focusable, x => x.DataContext is ISelectableElement);
             if (vsender == null)
             {
                 SelectElement(null);
                 return;
             }
-            /*if (vsender == null)
-            {
-                var psender = MyVisualTreeHelper.GetParent<ParameterVisual>((FrameworkElement)e.OriginalSource);
-                if (psender == null)
-                {
-                    SelectElement(null);
-                    return;
-                }
-                if(m_connectOrigin!=null)
-                {
-                    Connect(psender,m_connectOrigin);
-                    SelectElement(null);
-                    return;
-                }
-                psender.IsSelected = true;
-                e.Handled = true;
-                SelectElement(null);
-                m_connectOrigin = psender;
-                return;
-            }*/
 
-            var canvas = MyVisualTreeHelper.GetParent<ItemsControl>((FrameworkElement)e.Source);
+            if (vsender.Focusable) return;
+            var canvas = MyVisualTreeHelper.GetParent<ItemsControl>((FrameworkElement) e.Source);
             _isMouseDown = true;
             _dragStartPoint = e.GetPosition(canvas);
             _draggedDeviceVisual = vsender;
             SelectElement(vsender);
             canvas.CaptureMouse();
             e.Handled = true;
-
         }
 
         private void SelectElement(FrameworkElement element)
@@ -84,6 +64,7 @@ namespace BluePrintAssembler
                 if (l != null)
                     l.Remove(_overlayElement);
             }
+
             if (element != null)
             {
                 //ParametersPanel.DataContext = element.DataContext;
@@ -101,13 +82,11 @@ namespace BluePrintAssembler
                     m_connectOrigin.IsSelected = false;
                 m_connectOrigin = null;*/
             }
-
         }
 
         private void OverlayElementMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             _isMouseDown = true;
-            //m_originalElement = m_overlayElement.AdornedElement;
             var canvas = MyVisualTreeHelper.GetParent<Canvas>(_draggedDeviceVisual);
             _dragStartPoint = e.GetPosition(canvas);
             canvas.CaptureMouse();
@@ -126,18 +105,17 @@ namespace BluePrintAssembler
         {
             _isDragging = true;
             //var ui =(UIElement) MyVisualTreeHelper.GetParentWithDataContext<DraggableElement>(_draggedDeviceVisual);
-            var ui = (UIElement)MyVisualTreeHelper.GetParent<ContentPresenter>(_draggedDeviceVisual);
+            var ui = (UIElement) MyVisualTreeHelper.GetParent<ContentPresenter>(_draggedDeviceVisual);
             //var container = MyVisualTreeHelper.GetParent<DynamicCanvas>(_draggedDeviceVisual);
             _dragStartLeft = DynamicCanvas.GetLeft(ui);
-                //ui.Left;
+            //ui.Left;
             _dragStartTop = DynamicCanvas.GetTop(ui);
-                //ui.Top;
+            //ui.Top;
 
             SelectElement(_draggedDeviceVisual);
             _overlayElement.IsDragging = true;
-
         }
-        
+
         private void DragFinished(bool cancelled)
         {
             Mouse.Capture(null);
@@ -150,26 +128,31 @@ namespace BluePrintAssembler
                         //var ui = (UIElement)MyVisualTreeHelper.GetParentWithDataContext<DraggableElement>(_draggedDeviceVisual);
                         var ui = (UIElement) MyVisualTreeHelper.GetParent<ContentPresenter>(_draggedDeviceVisual);
                         DynamicCanvas.SetTop(ui, _dragStartTop + _overlayElement.TopOffset);
-                        DynamicCanvas.SetLeft(ui,_dragStartLeft+ _overlayElement.LeftOffset);
+                        DynamicCanvas.SetLeft(ui, _dragStartLeft + _overlayElement.LeftOffset);
                     }
+
                     SelectElement(_draggedDeviceVisual);
                     _overlayElement.IsDragging = false;
                     //ThreadPool.QueueUserWorkItem(UpdateConnections);
                 }
+
                 _isDragging = false;
                 _isMouseDown = false;
             }
-
         }
+
         private void DrawingAreaPreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
-                        if (_isMouseDown)
+            var vsender = MyVisualTreeHelper.GetParent(((FrameworkElement) e.OriginalSource), x => x.Focusable, x => x.DataContext is ISelectableElement);
+            if (vsender.Focusable && !_isDragging) return;
+
+            if (_isMouseDown)
                 _isMouseDown = false;
             if (_isDragging)
             {
                 DragFinished(false);
                 e.Handled = true;
-            }/*else
+            } /*else
             {
                 if(CreateDevice(e.GetPosition((FrameworkElement)e.Source)))
                 {
@@ -177,48 +160,65 @@ namespace BluePrintAssembler
                     SelectionTool.IsChecked = true;
                 }
             }*/
-            Mouse.Capture(null);
 
+            Mouse.Capture(null);
         }
 
 
         private void DrawingAreaPreviewMouseMove(object sender, MouseEventArgs e)
         {
-                        if (_isMouseDown)
+            if (_isMouseDown)
             {
-                var canvas = MyVisualTreeHelper.GetParent<ItemsControl>((FrameworkElement)e.Source);
+                var canvas = MyVisualTreeHelper.GetParent<ItemsControl>((FrameworkElement) e.Source);
                 if ((_isDragging == false) && ((Math.Abs(e.GetPosition(canvas).X - _dragStartPoint.X) > SystemParameters.MinimumHorizontalDragDistance) ||
-                    (Math.Abs(e.GetPosition(canvas).Y - _dragStartPoint.Y) > SystemParameters.MinimumVerticalDragDistance)))
+                                               (Math.Abs(e.GetPosition(canvas).Y - _dragStartPoint.Y) > SystemParameters.MinimumVerticalDragDistance)))
                 {
                     DragStarted();
                 }
+
                 if (_isDragging)
                 {
                     DragMoved(canvas);
                 }
             }
-
         }
 
 
         private void AutoLayout_Click(object sender, RoutedEventArgs e)
         {
             var w = ((UI.VM.MainWindow) DataContext).CurrentWorkspace;
-            var sizes=w.Vertices.ToDictionary(x => x, x => ((UIElement) DrawingArea.ItemContainerGenerator.ContainerFromItem(x)).DesiredSize);
-            var alg = new EfficientSugiyamaLayoutAlgorithm<IGraphNode, UI.VM.ProducibleItem, Workspace>(w, new EfficientSugiyamaLayoutParameters{VertexDistance = 100,PositionMode = 1}, new Dictionary<IGraphNode, Point>(), sizes);
-            alg.Compute();
-            var offX = 0.0;
-            var offY = 0.0;
-            foreach (var p in alg.VertexPositions)
+            if (w.VertexCount < 3)
             {
-                if (p.Value.X < offX) offX = p.Value.X;
-                if (p.Value.Y < offY) offY = p.Value.Y;
+                var off = new Point(0, 0);
+                foreach (var vertex in w.Vertices)
+                {
+                    var ui = (UIElement) DrawingArea.ItemContainerGenerator.ContainerFromItem(vertex);
+                    DynamicCanvas.SetLeft(ui, off.X);
+                    DynamicCanvas.SetTop(ui, off.Y);
+                    off.X += ui.DesiredSize.Width + 100;
+                    off.Y += ui.DesiredSize.Height + 100;
+                }
             }
-            foreach (var p in alg.VertexPositions)
+            else
             {
-                var ui=(UIElement)DrawingArea.ItemContainerGenerator.ContainerFromItem(p.Key);
-                DynamicCanvas.SetLeft(ui,p.Value.X-offX);
-                DynamicCanvas.SetTop(ui,p.Value.Y-offY);
+                var sizes = w.Vertices.ToDictionary(x => x, x => ((UIElement) DrawingArea.ItemContainerGenerator.ContainerFromItem(x))?.DesiredSize ?? new Size(0, 0));
+                //var alg = new EfficientSugiyamaLayoutAlgorithm<IGraphNode, UI.VM.ProducibleItem, Workspace>(w, new EfficientSugiyamaLayoutParameters{VertexDistance = 100,PositionMode = 1}, new Dictionary<IGraphNode, Point>(), sizes);
+                var alg = new SugiyamaLayoutAlgorithm<IGraphNode, UI.VM.ProducibleItem, Workspace>(w, sizes, new Dictionary<IGraphNode, Point>(), new SugiyamaLayoutParameters {HorizontalGap = 50, VerticalGap = 50}, edge => EdgeTypes.Hierarchical);
+                alg.Compute();
+                var offX = 0.0;
+                var offY = 0.0;
+                foreach (var p in alg.VertexPositions)
+                {
+                    if (p.Value.X < offX) offX = p.Value.X;
+                    if (p.Value.Y < offY) offY = p.Value.Y;
+                }
+
+                foreach (var p in alg.VertexPositions)
+                {
+                    var ui = (UIElement) DrawingArea.ItemContainerGenerator.ContainerFromItem(p.Key);
+                    DynamicCanvas.SetLeft(ui, p.Value.X - offX);
+                    DynamicCanvas.SetTop(ui, p.Value.Y - offY);
+                }
             }
 
             //MyVisualTreeHelper.GetChild<DynamicCanvas>(DrawingArea).AutoLayout();
