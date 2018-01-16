@@ -7,8 +7,6 @@ using System.Windows.Media;
 using BluePrintAssembler.UI.VM;
 using BluePrintAssembler.Utils;
 using GraphSharp.Algorithms.Layout.Simple.Hierarchical;
-using GraphSharp.Controls;
-using QuickGraph;
 
 namespace BluePrintAssembler.UI.Parts
 {

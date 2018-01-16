@@ -71,13 +71,13 @@
                 </ItemsControl.Resources>
             </ItemsControl>
         </ScrollViewer>
-        <StackPanel Grid.Row="1" Grid.Column="0">
-            <TextBlock Text="{x:Static resources:MainWindow.ExistingSources}"/>
-            <ScrollViewer VerticalAlignment="Stretch">
+        <DockPanel Grid.Row="1" Grid.Column="0">
+            <TextBlock DockPanel.Dock="Top" Text="{x:Static resources:MainWindow.ExistingSources}"/>
+            <ScrollViewer VerticalAlignment="Stretch" VerticalScrollBarVisibility="Auto">
                 <ItemsControl ItemsSource="{Binding CurrentWorkspace.ExistingSources}">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
-                            <StackPanel Orientation="Vertical" />
+                            <StackPanel Orientation="Vertical"  />
                         </ItemsPanelTemplate>
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.Resources>
@@ -93,10 +93,10 @@
                     </ItemsControl.Resources>
                 </ItemsControl>
             </ScrollViewer>
-        </StackPanel>
-        <StackPanel Grid.Row="1" Grid.Column="2">
-            <TextBlock Text="{x:Static resources:MainWindow.WantedResults}"/>
-            <ScrollViewer VerticalAlignment="Stretch">
+        </DockPanel>
+        <DockPanel Grid.Row="1" Grid.Column="2">
+            <TextBlock DockPanel.Dock="Top" Text="{x:Static resources:MainWindow.WantedResults}"/>
+            <ScrollViewer VerticalAlignment="Stretch" VerticalScrollBarVisibility="Auto">
                 <ItemsControl ItemsSource="{Binding CurrentWorkspace.WantedResults}">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
@@ -116,6 +116,6 @@
                     </ItemsControl.Resources>
                 </ItemsControl>
             </ScrollViewer>
-        </StackPanel>
+        </DockPanel>
     </Grid>
 </Window>

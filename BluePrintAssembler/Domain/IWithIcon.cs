@@ -4,9 +4,9 @@ namespace BluePrintAssembler.Domain
 {
     public interface IWithIcon
     {
-        string Icon { get; set; }
-        float IconSize { get; set; }
-        Dictionary<string, IconPart> Icons { get; set; }
+        string Icon { get;  }
+        float IconSize { get;  }
+        Dictionary<string, IconPart> Icons { get;  }
 
         IWithIcon FallbackIcon { get; }
     }

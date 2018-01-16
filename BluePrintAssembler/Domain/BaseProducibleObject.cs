@@ -1,6 +1,4 @@
-﻿using Newtonsoft.Json;
-
-namespace BluePrintAssembler.Domain
+﻿namespace BluePrintAssembler.Domain
 {
     public class BaseProducibleObject : BaseGameObject
     {

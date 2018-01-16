@@ -70,6 +70,15 @@ namespace BluePrintAssembler.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to BluePrintAssembler Layouts|*.bpal|All Files|*.*.
+        /// </summary>
+        public static string FileFilter {
+            get {
+                return ResourceManager.GetString("FileFilter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Flow output.
         /// </summary>
         public static string WantedResults {

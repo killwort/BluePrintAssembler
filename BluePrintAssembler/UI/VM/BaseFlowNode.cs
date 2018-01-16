@@ -4,7 +4,6 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using BluePrintAssembler.Annotations;
-using BluePrintAssembler.Domain;
 using QuickGraph;
 
 namespace BluePrintAssembler.UI.VM

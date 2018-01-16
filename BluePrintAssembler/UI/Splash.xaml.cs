@@ -1,7 +1,5 @@
-﻿using System.Linq;
-using System.Windows;
+﻿using System.Windows;
 using BluePrintAssembler.Domain;
-using BluePrintAssembler.Steam;
 
 namespace BluePrintAssembler
 {

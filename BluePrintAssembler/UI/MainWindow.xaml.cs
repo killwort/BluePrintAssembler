@@ -11,6 +11,7 @@ using BluePrintAssembler.UI.VM;
 using BluePrintAssembler.Utils;
 using GraphSharp;
 using GraphSharp.Algorithms.Layout.Simple.Hierarchical;
+using Microsoft.Win32;
 using Newtonsoft.Json;
 
 namespace BluePrintAssembler
@@ -233,7 +234,10 @@ namespace BluePrintAssembler
                 Formatting = Formatting.Indented,
                 TypeNameHandling = TypeNameHandling.Auto
             };
-            File.WriteAllText(@"C:\Users\hhj38\AppData\Local\BluePrintAssembler\autosave.json", JsonConvert.SerializeObject(DataContext,jss));
+            var dialog=new SaveFileDialog();
+            dialog.Filter = BluePrintAssembler.Resources.MainWindow.FileFilter;
+            if (dialog.ShowDialog(this) ?? false)
+                File.WriteAllText(dialog.FileName, JsonConvert.SerializeObject(DataContext,jss));
         }
         private void Load_Click(object sender, RoutedEventArgs e)
         {
@@ -242,7 +246,10 @@ namespace BluePrintAssembler
                 Formatting = Formatting.Indented,
                 TypeNameHandling = TypeNameHandling.Auto
             };
-            DataContext=JsonConvert.DeserializeObject<UI.VM.MainWindow>(File.ReadAllText(@"C:\Users\hhj38\AppData\Local\BluePrintAssembler\autosave.json"), jss);
+            var dialog=new OpenFileDialog();
+            dialog.Filter = BluePrintAssembler.Resources.MainWindow.FileFilter;
+            if (dialog.ShowDialog(this) ?? false)
+                DataContext = JsonConvert.DeserializeObject<UI.VM.MainWindow>(File.ReadAllText(dialog.FileName), jss);
         }
     }
 }

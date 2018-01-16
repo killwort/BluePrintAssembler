@@ -21,17 +21,39 @@ using NLua;
 
 namespace BluePrintAssembler.Domain
 {
-    class Configuration : INotifyPropertyChanged
+    internal class Configuration : INotifyPropertyChanged
     {
+        private static Configuration _instance;
+
+        private static readonly Regex LuaPropertyBlacklist = new Regex(@"((_picture)|(achievement)|(bounding_box)|(offsets)|(remnants)|(sound?)|(sprites?)|(graphics?)|(animations?)$)|(^(picture)|(hr_version)|(circuit_wire_connection_point)|(tutorial)|(technology)|(fluid_boxes)|(collision_box)|(noise-expression)|(decorative)|(smoke)|(projectile)|(font)|(unit)|(unit-spawner)|(beam)|(tree)|(tile)|(fire)|(corpse)|(explosion)$)", RegexOptions.Compiled);
+        private string _loadStatus;
+
         private Configuration()
         {
         }
 
-        public event EventHandler Loaded;
         public RawData RawData { get; private set; }
-        private static Configuration _instance;
-        private string _loadStatus;
         public static Configuration Instance => _instance ?? (_instance = new Configuration());
+
+        public Bitmap StdIconSlot { get; private set; }
+
+        public ModInfo[] Mods { get; set; }
+
+        public string LoadStatus
+        {
+            get => _loadStatus;
+            private set
+            {
+                if (value == _loadStatus) return;
+                _loadStatus = value;
+                OnPropertyChanged();
+            }
+        }
+
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        public event EventHandler Loaded;
 
         private Task<string[]> DiscoverFolders()
         {
@@ -51,8 +73,7 @@ namespace BluePrintAssembler.Domain
                 if (File.Exists(Path.Combine(folder, "mod-list.json")))
                     return ((JArray) ((JObject) JsonConvert.DeserializeObject(File.ReadAllText(Path.Combine(folder, "mod-list.json"))))["mods"])
                         .Select(x => new ModInfo {Name = x["name"].Value<string>(), Enabled = x["enabled"].Value<bool>()});
-                else
-                    return new ModInfo[0];
+                return new ModInfo[0];
             })).ToArray());
             return new[] {new ModInfo {Name = "core", Enabled = true}}.Concat(allItems.SelectMany(x => x)).ToArray();
         }
@@ -64,8 +85,7 @@ namespace BluePrintAssembler.Domain
             {
                 if (File.Exists(Path.Combine(folder, "mod-settings.json")))
                     return (JObject) JsonConvert.DeserializeObject(File.ReadAllText(Path.Combine(folder, "mod-settings.json")));
-                else
-                    return new JObject();
+                return new JObject();
             })).ToArray());
             return allItems.Aggregate(new JObject(), (acc, obj) =>
             {
@@ -92,24 +112,6 @@ namespace BluePrintAssembler.Domain
             return newIcon;
         }
 
-        internal class MultiDisposeObject<T>:IDisposable where T:IDisposable
-        {
-            private readonly IDisposable[] _others;
-
-            public MultiDisposeObject(T obj,params IDisposable[] others)
-            {
-                _others = others;
-                Object = obj;
-            }
-            public T Object { get; private set; }
-
-            public void Dispose()
-            {
-                Object.Dispose();
-                foreach(var o in _others)
-                    o.Dispose();
-            }
-        }
         private MultiDisposeObject<Stream> GetStreamFromMod(string path)
         {
             var parts = path.Split(new[] {'\\', '/'}, 2);
@@ -122,17 +124,16 @@ namespace BluePrintAssembler.Domain
                     var file = File.OpenRead(mod.BasePath);
                     var za = new ZipArchive(file);
                     var ent = za.GetEntry($"{mod.Name}_{mod.Version.ToString(3)}/{parts[1]}");
-                    return new MultiDisposeObject<Stream>(ent?.Open(),za,file);
+                    return new MultiDisposeObject<Stream>(ent?.Open(), za, file);
                 }
-                else
-                {
-                    var physicalPath=Path.Combine(mod.BasePath, parts[1]);
-                    if (File.Exists(physicalPath))
-                        return new MultiDisposeObject<Stream>(File.OpenRead(physicalPath));
-                    return null;
-                }
+
+                var physicalPath = Path.Combine(mod.BasePath, parts[1]);
+                if (File.Exists(physicalPath))
+                    return new MultiDisposeObject<Stream>(File.OpenRead(physicalPath));
+                return null;
             }
-            else return null;
+
+            return null;
         }
 
         private Task<Bitmap> MakeIcon(IWithIcon iconSource)
@@ -149,7 +150,6 @@ namespace BluePrintAssembler.Domain
                 using (var dc = Graphics.FromImage(bmp))
                 {
                     foreach (var layer in src.OrderBy(x => int.Parse(x.Key)))
-                    {
                         using (var iconStream = GetStreamFromMod(layer.Value.Icon))
                         {
                             if (iconStream == null) continue;
@@ -164,12 +164,9 @@ namespace BluePrintAssembler.Domain
                                     dest.Y += (sz - dest.Height) / 2f;
                                 }
 
-                                if (layer.Value.Shift != null)
-                                {
-                                    dest.Offset(layer.Value.Shift.X, layer.Value.Shift.Y);
-                                }
+                                if (layer.Value.Shift != null) dest.Offset(layer.Value.Shift.X, layer.Value.Shift.Y);
 
-                                var attr=new ImageAttributes();
+                                var attr = new ImageAttributes();
                                 if (layer.Value.Tint != null)
                                 {
                                     var cm = new ColorMatrix(new[]
@@ -178,17 +175,16 @@ namespace BluePrintAssembler.Domain
                                         new[] {0, layer.Value.Tint.G, 0, 0, 0},
                                         new[] {0, 0, layer.Value.Tint.B, 0, 0},
                                         new[] {0, 0, 0, 1f - layer.Value.Tint.A, 0},
-                                        new[] {0, 0, 0, 0, 1f},
+                                        new[] {0, 0, 0, 0, 1f}
                                     });
                                     attr.SetColorMatrix(cm);
                                 }
 
-                                dc.DrawImage(layerBmp, new []{dest.Location,new PointF(dest.Right,dest.Top),new PointF(dest.Left,dest.Bottom)}, new RectangleF(0, 0, layerBmp.Width, layerBmp.Height), GraphicsUnit.Pixel,attr);
+                                dc.DrawImage(layerBmp, new[] {dest.Location, new PointF(dest.Right, dest.Top), new PointF(dest.Left, dest.Bottom)}, new RectangleF(0, 0, layerBmp.Width, layerBmp.Height), GraphicsUnit.Pixel, attr);
                             }
                         }
 
-                        //layer.Value.Scale
-                    }
+                    //layer.Value.Scale
                 }
 
                 return bmp;
@@ -203,7 +199,7 @@ namespace BluePrintAssembler.Domain
             LoadStatus = Resources.Configuration.LocatingEnabledMods;
             Task.WaitAll(mods.Where(x => x.Enabled).Select(x => x.MapToFilesystem(folders)).ToArray());
             LoadStatus = Resources.Configuration.GuessingLoadOrder;
-            mods = mods.Where(x => x.Enabled).TopologicalSort((a, b) => a.Name != b.Name && ((b.Name == "core") || (b.Name == "base" && a.Name != "core") || (a.Dependencies?.Any(x => x.TrimStart(' ', '?').StartsWith(b.Name)) ?? false))).ToArray();
+            mods = mods.Where(x => x.Enabled).TopologicalSort((a, b) => a.Name != b.Name && (b.Name == "core" || b.Name == "base" && a.Name != "core" || (a.Dependencies?.Any(x => x.TrimStart(' ', '?').StartsWith(b.Name)) ?? false))).ToArray();
             Mods = mods;
 
             var verStamp = mods.Aggregate(new StringBuilder("BluePrintAssembler.").Append(Assembly.GetEntryAssembly().GetName().Version), (builder, mod) => builder.Append('|').Append(mod.Name).Append('.').Append(mod.Version?.ToString() ?? "*"));
@@ -228,16 +224,16 @@ namespace BluePrintAssembler.Domain
                 File.WriteAllText(cacheFile, JsonConvert.SerializeObject(RawData, Formatting.Indented));
             }
 
+            LoadStatus = Resources.Configuration.LoadingCommonIcons;
+
+            StdIconSlot = await GetIcon(new GenericIconSource("__core__/graphics/slot.png", 36));
+
             LoadStatus = Resources.Configuration.LoadCompleted;
 
             //await GetIcon(RawData.Recipes["fill-water-light-mud-barrel"]);
-            var nn=RawData.LocalisedName(RawData.Items["nitric-oxide-barrel"],null);
+            var nn = RawData.LocalisedName(RawData.Items["nitric-oxide-barrel"], null);
             Loaded?.Invoke(this, EventArgs.Empty);
         }
-
-        public ModInfo[] Mods { get; set; }
-
-        private static readonly Regex LuaPropertyBlacklist = new Regex(@"((_picture)|(achievement)|(bounding_box)|(offsets)|(remnants)|(sound?)|(sprites?)|(graphics?)|(animations?)$)|(^(picture)|(hr_version)|(circuit_wire_connection_point)|(tutorial)|(technology)|(fluid_boxes)|(collision_box)|(noise-expression)|(decorative)|(smoke)|(projectile)|(font)|(unit)|(unit-spawner)|(beam)|(tree)|(tile)|(fire)|(corpse)|(explosion)$)", RegexOptions.Compiled);
 
         private Task<JObject> LoadMods(JObject modSettings, ModInfo[] mods)
         {
@@ -255,10 +251,7 @@ namespace BluePrintAssembler.Domain
                         {
                             LoadStatus = string.Format(Resources.Configuration.UnpackingMod, mod.Name);
                             mod.TempPath = mod.LoadPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "BluePrintAssembler", $"UNPACKED_{mod.Name}_{mod.Version?.ToString() ?? "SRC"}");
-                            if (!Directory.Exists(mod.LoadPath))
-                            {
-                                Directory.CreateDirectory(mod.LoadPath);
-                            }
+                            if (!Directory.Exists(mod.LoadPath)) Directory.CreateDirectory(mod.LoadPath);
 
                             {
                                 using (var zfs = File.OpenRead(mod.BasePath))
@@ -271,11 +264,11 @@ namespace BluePrintAssembler.Domain
                                         if (!Directory.Exists(Path.GetDirectoryName(fullPath)))
                                             Directory.CreateDirectory(Path.GetDirectoryName(fullPath));
                                         if (entry.Length > 0)
-                                        {
                                             using (var fs = entry.Open())
                                             using (var ofs = File.Create(fullPath))
+                                            {
                                                 fs.CopyTo(ofs);
-                                        }
+                                            }
                                     }
                                 }
                             }
@@ -287,14 +280,12 @@ namespace BluePrintAssembler.Domain
                     void ProcessFileInAllMods(string filename, string message)
                     {
                         foreach (var mod in mods)
-                        {
                             if (File.Exists(Path.Combine(mod.LoadPath, filename)))
                             {
                                 LoadStatus = string.Format(message, mod.Name, filename);
                                 SetupLuaParser(lua, mods.First(), mod);
                                 lua.DoFile(Path.Combine(mod.LoadPath, filename));
                             }
-                        }
                     }
 
                     ProcessFileInAllMods("settings.lua", Resources.Configuration.ExecutingLuaFromMod);
@@ -304,13 +295,13 @@ namespace BluePrintAssembler.Domain
                     ProcessFileInAllMods("data-updates.lua", Resources.Configuration.ExecutingLuaFromMod);
                     ProcessFileInAllMods("data-final-fixes.lua", Resources.Configuration.ExecutingLuaFromMod);
 
-                    var locale=new JObject();
+                    var locale = new JObject();
                     foreach (var mod in mods)
                     {
                         if (!Directory.Exists(Path.Combine(mod.LoadPath, "locale"))) continue;
                         foreach (var localeDir in Directory.GetDirectories(Path.Combine(mod.LoadPath, "locale")))
                         {
-                            var localeProp=(JObject)locale.Property(Path.GetFileName(localeDir))?.Value;
+                            var localeProp = (JObject) locale.Property(Path.GetFileName(localeDir))?.Value;
                             if (localeProp == null)
                                 locale.Add(new JProperty(Path.GetFileName(localeDir), localeProp = new JObject()));
                             foreach (var localeFile in Directory.GetFiles(localeDir, "*.cfg"))
@@ -319,7 +310,7 @@ namespace BluePrintAssembler.Domain
                                 ini.Load();
                                 foreach (var section in ini.GetSections())
                                 {
-                                    var sectionProp=(JObject)localeProp.Property(section)?.Value;
+                                    var sectionProp = (JObject) localeProp.Property(section)?.Value;
                                     if (sectionProp == null)
                                         localeProp.Add(new JProperty(section, sectionProp = new JObject()));
                                     foreach (var k in ini.GetKeys(section))
@@ -359,10 +350,8 @@ namespace BluePrintAssembler.Domain
                     var rootObject = Convert(lua.GetTable("data.raw"));
                     LoadStatus = Resources.Configuration.RemovingTempFiles;
                     foreach (var mod in mods)
-                    {
                         if (mod.TempPath != null && mod.TempPath != mod.BasePath)
                             Directory.Delete(mod.TempPath, true);
-                    }
 
                     rootObject.Add("Locale", locale);
                     return rootObject;
@@ -384,10 +373,15 @@ namespace BluePrintAssembler.Domain
         private void InitLuaParser(Lua lua, ModInfo core, IEnumerable<ModInfo> enabledMods, JObject modSettings)
         {
             using (var reader = new StreamReader(Assembly.GetEntryAssembly().GetManifestResourceStream("BluePrintAssembler.Resources.Lua.Init.lua")))
+            {
                 lua.DoString(reader.ReadToEnd());
+            }
+
             lua.GetFunction("___BPA___pkgpath__add___").Call(Path.Combine(core.BasePath, "lualib"));
             using (var reader = new StreamReader(Assembly.GetEntryAssembly().GetManifestResourceStream("BluePrintAssembler.Resources.Lua.FactorioDefs.lua")))
+            {
                 lua.DoString(reader.ReadToEnd());
+            }
 
             foreach (var mod in enabledMods)
                 lua.DoString($"mods[\'{mod.Name}\'] = '{mod.Version?.ToString() ?? ""}'");
@@ -432,24 +426,45 @@ namespace BluePrintAssembler.Domain
             lua.DoFile(Path.Combine(core.BasePath, "lualib", "dataloader.lua"));
         }
 
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
         [NotifyPropertyChangedInvocator]
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        public string LoadStatus
+        internal class MultiDisposeObject<T> : IDisposable where T : IDisposable
         {
-            get => _loadStatus;
-            private set
+            private readonly IDisposable[] _others;
+
+            public MultiDisposeObject(T obj, params IDisposable[] others)
             {
-                if (value == _loadStatus) return;
-                _loadStatus = value;
-                OnPropertyChanged();
+                _others = others;
+                Object = obj;
             }
+
+            public T Object { get; }
+
+            public void Dispose()
+            {
+                Object.Dispose();
+                foreach (var o in _others)
+                    o.Dispose();
+            }
+        }
+
+        private class GenericIconSource : IWithIcon
+        {
+            public GenericIconSource(string file, float size)
+            {
+                Icon = file;
+                IconSize = size;
+            }
+
+            public string Icon { get; }
+            public float IconSize { get; }
+            public Dictionary<string, IconPart> Icons { get; set; }
+
+            public IWithIcon FallbackIcon => null;
         }
     }
 }

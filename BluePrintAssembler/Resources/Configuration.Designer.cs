@@ -115,6 +115,15 @@ namespace BluePrintAssembler.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Loading common graphics….
+        /// </summary>
+        internal static string LoadingCommonIcons {
+            get {
+                return ResourceManager.GetString("LoadingCommonIcons", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Loading data from cache….
         /// </summary>
         internal static string LoadingFromCache {

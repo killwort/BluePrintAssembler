@@ -153,4 +153,7 @@
   <data name="RemovingTempFiles" xml:space="preserve">
     <value>Removing temporary files…</value>
   </data>
+  <data name="LoadingCommonIcons" xml:space="preserve">
+    <value>Loading common graphics…</value>
+  </data>
 </root>
