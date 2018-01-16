@@ -252,6 +252,9 @@
     <Compile Include="UI\Parts\SelectRecipe.xaml.cs">
       <DependentUpon>SelectRecipe.xaml</DependentUpon>
     </Compile>
+    <Compile Include="UI\SelectItem.xaml.cs">
+      <DependentUpon>SelectItem.xaml</DependentUpon>
+    </Compile>
     <Compile Include="UI\VM\BaseFlowNode.cs" />
     <Compile Include="UI\VM\IAddableToFactory.cs" />
     <Compile Include="UI\VM\IGraphNode.cs" />
@@ -262,6 +265,7 @@
     <Compile Include="UI\VM\ProducibleItemWithAmount.cs" />
     <Compile Include="UI\VM\Recipe.cs" />
     <Compile Include="UI\VM\RecipeIO.cs" />
+    <Compile Include="UI\VM\SelectItem.cs" />
     <Compile Include="UI\VM\SelectRecipe.cs" />
     <Compile Include="UI\VM\Workspace.cs" />
     <Compile Include="Utils\AmountToStringConverter.cs" />
@@ -293,6 +297,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="UI\Parts\SelectRecipe.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UI\SelectItem.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

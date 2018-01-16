@@ -251,5 +251,19 @@ namespace BluePrintAssembler
             if (dialog.ShowDialog(this) ?? false)
                 DataContext = JsonConvert.DeserializeObject<UI.VM.MainWindow>(File.ReadAllText(dialog.FileName), jss);
         }
+
+        private void AddResult_Click(object sender, RoutedEventArgs e)
+        {
+            var dialog=new UI.SelectItem();
+            if (dialog.ShowDialog() ?? false)
+                ((UI.VM.MainWindow) DataContext).CurrentWorkspace.WantedResults.Add(((UI.VM.SelectItem) dialog.DataContext).SelectedItem);
+        }
+
+        private void AddSource_Click(object sender, RoutedEventArgs e)
+        {
+            var dialog=new UI.SelectItem();
+            if (dialog.ShowDialog() ?? false)
+                ((UI.VM.MainWindow) DataContext).CurrentWorkspace.ExistingSources.Add(((UI.VM.SelectItem) dialog.DataContext).SelectedItem);
+        }
     }
 }

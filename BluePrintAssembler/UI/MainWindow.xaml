@@ -85,7 +85,7 @@
                     <ItemsControl.ItemsSource>
                         <CompositeCollection>
                             <CollectionContainer Collection="{Binding Source={StaticResource Source}}" />
-                            <Button BorderThickness="1" BorderBrush="#403b35" Width="36" Height="36" Background="{Binding Source={x:Static domain:Configuration.Instance}, Path=StdIconSlot, Converter={StaticResource BitmapToBrushConverter}}">
+                            <Button BorderThickness="1" BorderBrush="#403b35" Width="36" Height="36" Click="AddSource_Click" Background="{Binding Source={x:Static domain:Configuration.Instance}, Path=StdIconSlot, Converter={StaticResource BitmapToBrushConverter}}">
                                 <Image Source="pack://application:,,,/BluePrintAssembler;component/Resources/plus.png" />
                             </Button>
                         </CompositeCollection>
@@ -117,7 +117,7 @@
                     <ItemsControl.ItemsSource>
                         <CompositeCollection>
                             <CollectionContainer Collection="{Binding Source={StaticResource Source}}" />
-                            <Button BorderThickness="1" BorderBrush="#403b35" Width="36" Height="36" Background="{Binding Source={x:Static domain:Configuration.Instance}, Path=StdIconSlot, Converter={StaticResource BitmapToBrushConverter}}">
+                            <Button BorderThickness="1" BorderBrush="#403b35" Width="36" Height="36" Click="AddResult_Click" Background="{Binding Source={x:Static domain:Configuration.Instance}, Path=StdIconSlot, Converter={StaticResource BitmapToBrushConverter}}">
                                 <Image Source="pack://application:,,,/BluePrintAssembler;component/Resources/plus.png" />
                             </Button>
                         </CompositeCollection>
