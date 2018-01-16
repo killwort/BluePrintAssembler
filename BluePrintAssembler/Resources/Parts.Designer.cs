@@ -95,5 +95,14 @@ namespace BluePrintAssembler.Resources {
                 return ResourceManager.GetString("SelectRecipeForProducing", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to KMGTQ.
+        /// </summary>
+        public static string Suffixes {
+            get {
+                return ResourceManager.GetString("Suffixes", resourceCulture);
+            }
+        }
     }
 }

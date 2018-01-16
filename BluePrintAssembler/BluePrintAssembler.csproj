@@ -235,6 +235,9 @@
     </Compile>
     <Compile Include="Steam\VDFObject.cs" />
     <Compile Include="UI\Parts\DynamicCanvas.cs" />
+    <Compile Include="UI\Parts\IconWithText.xaml.cs">
+      <DependentUpon>IconWithText.xaml</DependentUpon>
+    </Compile>
     <Compile Include="UI\Parts\ManualItemSource.xaml.cs">
       <DependentUpon>ManualItemSource.xaml</DependentUpon>
     </Compile>
@@ -261,12 +264,19 @@
     <Compile Include="UI\VM\RecipeIO.cs" />
     <Compile Include="UI\VM\SelectRecipe.cs" />
     <Compile Include="UI\VM\Workspace.cs" />
+    <Compile Include="Utils\AmountToStringConverter.cs" />
+    <Compile Include="Utils\BitmapToBrushConverter.cs" />
     <Compile Include="Utils\BitmapToImageSourceConverter.cs" />
     <Compile Include="Utils\Extensions.cs" />
+    <Compile Include="Utils\MultiDisposeObject.cs" />
     <Compile Include="Utils\MyVisualTreeHelper.cs" />
     <Compile Include="Utils\NamedToLocalisedNameConverter.cs" />
     <Compile Include="Utils\NotifyTaskCompletion.cs" />
     <Page Include="UI\MainWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UI\Parts\IconWithText.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -350,6 +360,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="ATG\Coco.exe" />
+    <Resource Include="Resources\plus.png" />
     <EmbeddedResource Include="Resources\Lua\Init.lua" />
     <None Include="ATG\VDF.atg" />
   </ItemGroup>

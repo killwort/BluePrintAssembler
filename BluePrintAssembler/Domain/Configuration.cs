@@ -226,14 +226,21 @@ namespace BluePrintAssembler.Domain
 
             LoadStatus = Resources.Configuration.LoadingCommonIcons;
 
+            /*var stylesLua=new Lua();
+            InitLuaParser(stylesLua,mods.First(),new ModInfo[0],new JObject());
+            stylesLua.DoFile(Path.Combine(mods.First().BasePath, "prototypes", "style.lua"));
+            var gfx = stylesLua.GetTable("data.raw.gui-style.default");
+            foreach (var item in gfx.Keys)
+            {
+
+            }*/
             StdIconSlot = await GetIcon(new GenericIconSource("__core__/graphics/slot.png", 36));
 
             LoadStatus = Resources.Configuration.LoadCompleted;
 
-            //await GetIcon(RawData.Recipes["fill-water-light-mud-barrel"]);
-            var nn = RawData.LocalisedName(RawData.Items["nitric-oxide-barrel"], null);
             Loaded?.Invoke(this, EventArgs.Empty);
         }
+
 
         private Task<JObject> LoadMods(JObject modSettings, ModInfo[] mods)
         {
@@ -432,26 +439,6 @@ namespace BluePrintAssembler.Domain
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        internal class MultiDisposeObject<T> : IDisposable where T : IDisposable
-        {
-            private readonly IDisposable[] _others;
-
-            public MultiDisposeObject(T obj, params IDisposable[] others)
-            {
-                _others = others;
-                Object = obj;
-            }
-
-            public T Object { get; }
-
-            public void Dispose()
-            {
-                Object.Dispose();
-                foreach (var o in _others)
-                    o.Dispose();
-            }
-        }
-
         private class GenericIconSource : IWithIcon
         {
             public GenericIconSource(string file, float size)
@@ -466,5 +453,10 @@ namespace BluePrintAssembler.Domain
 
             public IWithIcon FallbackIcon => null;
         }
+    }
+
+    public class ButtonStyle
+    {
+
     }
 }

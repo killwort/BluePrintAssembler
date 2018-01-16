@@ -26,13 +26,8 @@
                     <RowDefinition/>
                     <RowDefinition/>
                 </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition/>
-                    <ColumnDefinition/>
-                </Grid.ColumnDefinitions>
                 <TextBlock Margin="3" Grid.ColumnSpan="2" Text="{x:Static resources:Parts.ItemCannotBeCrafted}" />
-                <TextBlock Margin="3" Grid.Column="0" Grid.Row="1" Text="{Binding Path=MyItem, Converter={StaticResource NamedToLocalisedNameConverter}}" VerticalAlignment="Center" />
-                <Image Grid.Column="1" Grid.Row="1" Margin="3" Source="{Binding Path=Icon.Result, Converter={StaticResource BitmapToImageSourceConverter}}" VerticalAlignment="Center"/>
+                <local:IconWithText Grid.Column="0" Grid.Row="1" Margin="3" DataContext="{Binding}" Icon="{Binding Icon}" NamedObject="{Binding MyItem}"/>
                 <Button Grid.Column="0" Margin="3" Click="AddToFactory" Content="{x:Static resources:Parts.AddToFactoryOutput}" Grid.ColumnSpan="2" Grid.Row="2"/>
             </Grid>
         </Border>

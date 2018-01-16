@@ -8,14 +8,14 @@
         xmlns:vm="clr-namespace:BluePrintAssembler.UI.VM"
         xmlns:utils="clr-namespace:BluePrintAssembler.Utils"
         xmlns:resources="clr-namespace:BluePrintAssembler.Resources"
+        xmlns:domain="clr-namespace:BluePrintAssembler.Domain"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Window.DataContext>
         <vm:MainWindow />
     </Window.DataContext>
     <Window.Resources>
-        <utils:BitmapToImageSourceConverter x:Key="BitmapToImageSourceConverter" />
-        <utils:NamedToLocalisedNameConverter x:Key="NamedToLocalisedNameConverter" />
+        <utils:BitmapToBrushConverter x:Key="BitmapToBrushConverter" />
     </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
@@ -49,13 +49,13 @@
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemContainerStyle>
                     <Style TargetType="{x:Type ContentPresenter}">
-                        <Setter Property="parts:DynamicCanvas.Left" Value="{Binding Path=LayoutLeft, Mode=TwoWay}"/>
-                        <Setter Property="parts:DynamicCanvas.Top" Value="{Binding Path=LayoutTop, Mode=TwoWay}"/>
+                        <Setter Property="parts:DynamicCanvas.Left" Value="{Binding Path=LayoutLeft, Mode=TwoWay}" />
+                        <Setter Property="parts:DynamicCanvas.Top" Value="{Binding Path=LayoutTop, Mode=TwoWay}" />
                     </Style>
                 </ItemsControl.ItemContainerStyle>
                 <ItemsControl.Resources>
                     <DataTemplate DataType="{x:Type vm:Recipe}">
-                        <parts:Recipe DataContext="{Binding}" parts:DynamicCanvas.Top="{Binding Path=LayoutTop, Mode=TwoWay}"  parts:DynamicCanvas.Left="{Binding Path=LayoutLeft, Mode=TwoWay}" />
+                        <parts:Recipe DataContext="{Binding}" parts:DynamicCanvas.Top="{Binding Path=LayoutTop, Mode=TwoWay}" parts:DynamicCanvas.Left="{Binding Path=LayoutLeft, Mode=TwoWay}" />
                     </DataTemplate>
                     <DataTemplate DataType="{x:Type vm:ProducibleItem}">
                         <parts:ProducibleItem DataContext="{Binding}" Connection="{Binding}"
@@ -63,41 +63,33 @@
                                               EndPoint="{Binding Path=Ingress.ConnectionPoint, Mode=OneWay}" />
                     </DataTemplate>
                     <DataTemplate DataType="{x:Type vm:SelectRecipe}">
-                        <parts:SelectRecipe DataContext="{Binding}"/>
+                        <parts:SelectRecipe DataContext="{Binding}" />
                     </DataTemplate>
                     <DataTemplate DataType="{x:Type vm:ManualItemSource}">
-                        <parts:ManualItemSource DataContext="{Binding}"/>
+                        <parts:ManualItemSource DataContext="{Binding}" />
                     </DataTemplate>
                 </ItemsControl.Resources>
             </ItemsControl>
         </ScrollViewer>
-        <DockPanel Grid.Row="1" Grid.Column="0">
-            <TextBlock DockPanel.Dock="Top" Text="{x:Static resources:MainWindow.ExistingSources}"/>
+        <DockPanel Grid.Row="1" Grid.Column="0" Background="#403b35">
+            <TextBlock DockPanel.Dock="Right" Text="{x:Static resources:MainWindow.ExistingSources}" Margin="3" Foreground="White" RenderOptions.ClearTypeHint="Enabled" TextAlignment="Left">
+                <TextBlock.LayoutTransform>
+                    <RotateTransform Angle="90" />
+                </TextBlock.LayoutTransform>
+            </TextBlock>
             <ScrollViewer VerticalAlignment="Stretch" VerticalScrollBarVisibility="Auto">
-                <ItemsControl ItemsSource="{Binding CurrentWorkspace.ExistingSources}">
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <StackPanel Orientation="Vertical"  />
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                    <ItemsControl.Resources>
-                        <DataTemplate DataType="{x:Type vm:ProducibleItemWithAmount}">
-                            <StackPanel
-                                ToolTip="{Binding Path=MyItem, Converter={StaticResource NamedToLocalisedNameConverter}}"
-                                DataContext="{Binding}" Orientation="Horizontal">
-                                <TextBlock Text="{Binding Path=Amount}" VerticalAlignment="Center" />
-                                <TextBlock Text="×" VerticalAlignment="Center" />
-                                <Image Source="{Binding Path=Icon.Result, Converter={StaticResource BitmapToImageSourceConverter}}" />
-                            </StackPanel>
-                        </DataTemplate>
-                    </ItemsControl.Resources>
-                </ItemsControl>
-            </ScrollViewer>
-        </DockPanel>
-        <DockPanel Grid.Row="1" Grid.Column="2">
-            <TextBlock DockPanel.Dock="Top" Text="{x:Static resources:MainWindow.WantedResults}"/>
-            <ScrollViewer VerticalAlignment="Stretch" VerticalScrollBarVisibility="Auto">
-                <ItemsControl ItemsSource="{Binding CurrentWorkspace.WantedResults}">
+                <ScrollViewer.Resources>
+                    <CollectionViewSource x:Key="Source" Source="{Binding CurrentWorkspace.ExistingSources}" />
+                </ScrollViewer.Resources>
+                <ItemsControl>
+                    <ItemsControl.ItemsSource>
+                        <CompositeCollection>
+                            <CollectionContainer Collection="{Binding Source={StaticResource Source}}" />
+                            <Button BorderThickness="1" BorderBrush="#403b35" Width="36" Height="36" Background="{Binding Source={x:Static domain:Configuration.Instance}, Path=StdIconSlot, Converter={StaticResource BitmapToBrushConverter}}">
+                                <Image Source="pack://application:,,,/BluePrintAssembler;component/Resources/plus.png" />
+                            </Button>
+                        </CompositeCollection>
+                    </ItemsControl.ItemsSource>
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
                             <StackPanel Orientation="Vertical" />
@@ -105,13 +97,40 @@
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.Resources>
                         <DataTemplate DataType="{x:Type vm:ProducibleItemWithAmount}">
-                            <StackPanel
-                                ToolTip="{Binding Path=MyItem, Converter={StaticResource NamedToLocalisedNameConverter}}"
-                                DataContext="{Binding}" Orientation="Horizontal">
-                                <TextBlock Text="{Binding Path=Amount}" VerticalAlignment="Center" />
-                                <TextBlock Text="×" VerticalAlignment="Center" />
-                                <Image Source="{Binding Path=Icon.Result, Converter={StaticResource BitmapToImageSourceConverter}}" />
-                            </StackPanel>
+                            <parts:IconWithText DataContext="{Binding}" Amount="{Binding Amount}" Icon="{Binding Icon}" NamedObject="{Binding MyItem}" />
+                        </DataTemplate>
+                    </ItemsControl.Resources>
+                </ItemsControl>
+            </ScrollViewer>
+        </DockPanel>
+        <DockPanel Grid.Row="1" Grid.Column="2" Background="#403b35">
+            <TextBlock DockPanel.Dock="Left" Text="{x:Static resources:MainWindow.WantedResults}" Margin="3" Foreground="White" RenderOptions.ClearTypeHint="Enabled" TextAlignment="Right">
+                <TextBlock.LayoutTransform>
+                    <RotateTransform Angle="-90" />
+                </TextBlock.LayoutTransform>
+            </TextBlock>
+            <ScrollViewer VerticalAlignment="Stretch" VerticalScrollBarVisibility="Auto">
+                <ScrollViewer.Resources>
+                    <CollectionViewSource x:Key="Source" Source="{Binding CurrentWorkspace.WantedResults}" />
+                </ScrollViewer.Resources>
+                <ItemsControl>
+                    <ItemsControl.ItemsSource>
+                        <CompositeCollection>
+                            <CollectionContainer Collection="{Binding Source={StaticResource Source}}" />
+                            <Button BorderThickness="1" BorderBrush="#403b35" Width="36" Height="36" Background="{Binding Source={x:Static domain:Configuration.Instance}, Path=StdIconSlot, Converter={StaticResource BitmapToBrushConverter}}">
+                                <Image Source="pack://application:,,,/BluePrintAssembler;component/Resources/plus.png" />
+                            </Button>
+                        </CompositeCollection>
+                    </ItemsControl.ItemsSource>
+
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Vertical" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.Resources>
+                        <DataTemplate DataType="{x:Type vm:ProducibleItemWithAmount}">
+                            <parts:IconWithText DataContext="{Binding}" Amount="{Binding Amount}" Icon="{Binding Icon}" NamedObject="{Binding MyItem}" />
                         </DataTemplate>
                     </ItemsControl.Resources>
                 </ItemsControl>

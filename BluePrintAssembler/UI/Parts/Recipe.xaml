@@ -34,8 +34,7 @@
         <Border Grid.Row="1" BorderThickness="0.5" CornerRadius="5" BorderBrush="Black" Cursor="SizeAll" Background="AntiqueWhite">
             <StackPanel Orientation="Vertical" Margin="6">
                 <TextBlock Margin="3" Text="{Binding MyRecipe.Category}" />
-                <TextBlock Margin="3" Text="{Binding Path=MyRecipe, Converter={StaticResource NamedToLocalisedNameConverter}}" />
-                <Image Margin="3" Source="{Binding Path=Icon.Result, Converter={StaticResource BitmapToImageSourceConverter}}" />
+                <local:IconWithText Margin="3" DataContext="{Binding}" Icon="{Binding Icon}" NamedObject="{Binding MyRecipe}" />
             </StackPanel>
         </Border>
         <ItemsControl Grid.Row="2" ItemsSource="{Binding Path=Results}">

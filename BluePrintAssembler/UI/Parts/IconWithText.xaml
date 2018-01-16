@@ -1,0 +1,32 @@
+﻿<UserControl x:Class="BluePrintAssembler.UI.Parts.IconWithText"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:BluePrintAssembler.UI.Parts"
+             xmlns:utils="clr-namespace:BluePrintAssembler.Utils"
+             xmlns:domain="clr-namespace:BluePrintAssembler.Domain"
+             mc:Ignorable="d"
+             d:DesignHeight="36" d:DesignWidth="36" x:Name="Self" Width="36" Height="36">
+    <UserControl.Resources>
+        <utils:BitmapToImageSourceConverter x:Key="BitmapToImageSourceConverter" />
+        <utils:BitmapToBrushConverter x:Key="BitmapToBrushConverter" />
+        <utils:NamedToLocalisedNameConverter x:Key="NamedToLocalisedNameConverter" />
+        <utils:AmountToStringConverter x:Key="AmountToStringConverter"/>
+    </UserControl.Resources>
+    <Border BorderThickness="1" BorderBrush="#403b35" Width="36" Height="36">
+        <Grid Background="{Binding Source={x:Static domain:Configuration.Instance}, Path=StdIconSlot, Converter={StaticResource BitmapToBrushConverter}}" ToolTip="{Binding ElementName=Self, Path=NamedObject, Mode=OneWay, Converter={StaticResource NamedToLocalisedNameConverter}}">
+            <Image Source="{Binding Path=Icon.Result, ElementName=Self, Mode=OneWay, Converter={StaticResource BitmapToImageSourceConverter}}" />
+            <TextBlock FontWeight="Bold" RenderOptions.ClearTypeHint="Enabled" Text="{Binding ElementName=Self, Mode=OneWay, Path=Amount, Converter={StaticResource AmountToStringConverter}}" TextAlignment="Right" VerticalAlignment="Bottom" Margin="3" Foreground="Black">
+                <TextBlock.Effect>
+                    <BlurEffect Radius="3" />
+                </TextBlock.Effect>
+            </TextBlock>
+            <TextBlock FontWeight="Bold" RenderOptions.ClearTypeHint="Enabled" Text="{Binding ElementName=Self, Mode=OneWay, Path=Amount, Converter={StaticResource AmountToStringConverter}}" TextAlignment="Right" VerticalAlignment="Bottom" Margin="3" Foreground="White">
+                <TextBlock.Effect>
+                    <DropShadowEffect ShadowDepth="0" Direction="0" Color="Black" BlurRadius="2" />
+                </TextBlock.Effect>
+            </TextBlock>
+        </Grid>
+    </Border>
+</UserControl>

@@ -2,6 +2,7 @@
 using System.Globalization;
 using System.Windows.Data;
 using BluePrintAssembler.Domain;
+using Configuration = BluePrintAssembler.Domain.Configuration;
 
 namespace BluePrintAssembler.Utils
 {
