@@ -8,7 +8,5 @@ namespace BluePrintAssembler.Domain
 
         [JsonProperty("stack_size")]
         public int StackSize { get; set; }
-        [JsonProperty("order")]
-        public string Order { get; set; }
     }
 }

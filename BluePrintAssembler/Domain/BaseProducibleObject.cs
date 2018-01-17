@@ -6,5 +6,8 @@ namespace BluePrintAssembler.Domain
     {
         [JsonProperty("subgroup")]
         public string Subgroup { get; set; }
+        [JsonProperty("order")]
+        public string Order { get; set; }
+
     }
 }

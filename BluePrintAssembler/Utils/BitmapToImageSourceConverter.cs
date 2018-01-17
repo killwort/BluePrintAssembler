@@ -13,11 +13,11 @@ namespace BluePrintAssembler.Utils
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (typeof(ImageSource).IsAssignableFrom(targetType) && value is Bitmap)
+            try
             {
-                return Imaging.CreateBitmapSourceFromHBitmap(((Bitmap) value).GetHbitmap(), IntPtr.Zero, Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions());
-            }
-
+                if (typeof(ImageSource).IsAssignableFrom(targetType) && value is Bitmap bmp)
+                    return Imaging.CreateBitmapSourceFromHBitmap(bmp.GetHbitmap(), IntPtr.Zero, Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions());
+            }catch{}
             return null;
         }
 

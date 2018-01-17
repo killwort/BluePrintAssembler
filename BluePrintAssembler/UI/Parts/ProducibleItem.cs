@@ -42,6 +42,14 @@ namespace BluePrintAssembler.UI.Parts
             set { SetValue(EndPointProperty, value); }
         }
 
+        public static readonly DependencyProperty ColorProperty = DependencyProperty.Register(
+            "Color", typeof(Color), typeof(ProducibleItem), new FrameworkPropertyMetadata(new Color(), FrameworkPropertyMetadataOptions.AffectsRender));
+
+        public Color Color
+        {
+            get { return (Color) GetValue(ColorProperty); }
+            set { SetValue(ColorProperty, value); }
+        }
         protected override void OnRender(DrawingContext drawingContext)
         {
             var w = EndPoint.Y - StartPoint.Y;
@@ -55,7 +63,9 @@ namespace BluePrintAssembler.UI.Parts
                     new PathSegment[]
                         {new BezierSegment(startTangent, endTangent, EndPoint, true)}, false)
             });
-            drawingContext.DrawGeometry(null, new System.Windows.Media.Pen(Brushes.Red, 2), /*ConnectionsPen.PenFromType(((ConnectionInConfiguration)DataContext).Source.Type), */geom);
+
+            var brush = new SolidColorBrush(Color);
+            drawingContext.DrawGeometry(null, new Pen(brush, 2), /*ConnectionsPen.PenFromType(((ConnectionInConfiguration)DataContext).Source.Type), */geom);
         }
     }
 }

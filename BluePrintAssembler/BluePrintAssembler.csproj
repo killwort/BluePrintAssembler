@@ -263,6 +263,7 @@
     <Compile Include="UI\VM\ManualItemSource.cs" />
     <Compile Include="UI\VM\ProducibleItem.cs" />
     <Compile Include="UI\VM\ProducibleItemWithAmount.cs" />
+    <Compile Include="UI\VM\ProducingEntity.cs" />
     <Compile Include="UI\VM\Recipe.cs" />
     <Compile Include="UI\VM\RecipeIO.cs" />
     <Compile Include="UI\VM\SelectItem.cs" />
@@ -271,6 +272,7 @@
     <Compile Include="Utils\AmountToStringConverter.cs" />
     <Compile Include="Utils\BitmapToBrushConverter.cs" />
     <Compile Include="Utils\BitmapToImageSourceConverter.cs" />
+    <Compile Include="Utils\DelegateCommand.cs" />
     <Compile Include="Utils\Extensions.cs" />
     <Compile Include="Utils\MultiDisposeObject.cs" />
     <Compile Include="Utils\MyVisualTreeHelper.cs" />

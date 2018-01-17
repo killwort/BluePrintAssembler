@@ -33,6 +33,11 @@ namespace BluePrintAssembler.UI.VM
         {
             Parent = parent;
             MyItem = myItem;
+            Parent.PropertyChanged += (sender, arg) =>
+            {
+                if (arg.PropertyName == nameof(Recipe.Speed))
+                    OnPropertyChanged(nameof(Rate));
+            };
         }
 
         public NotifyTaskCompletion<Bitmap> Icon => _icon ?? (_icon = new NotifyTaskCompletion<Bitmap>(Configuration.Instance.GetIcon(Configuration.Instance.RawData.Get(_myItem.Type,_myItem.Name))));
@@ -51,6 +56,7 @@ namespace BluePrintAssembler.UI.VM
         public BaseProducibleObject RealItem => Configuration.Instance.RawData.Get(MyItem.Type, MyItem.Name);
         public List<ProducibleItem> RelatedItems { get; private set; } = new List<ProducibleItem>();
 
+        public float Rate => MyItem.Amount * Parent.Speed;
         public event PropertyChangedEventHandler PropertyChanged;
 
         [NotifyPropertyChangedInvocator]

@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Windows.Data;
 using BluePrintAssembler.Domain;
@@ -12,6 +13,9 @@ namespace BluePrintAssembler.UI.VM
             ListView = new ListCollectionView(Configuration.Instance.RawData.Items.Select(x => (BaseProducibleObject) x.Value).Concat(Configuration.Instance.RawData.Fluids.Select(x => x.Value)).Select(x => new ProducibleItemWithAmount(x)).ToList());
             ListView.GroupDescriptions.Add(new PropertyGroupDescription($"{nameof(ProducibleItemWithAmount.MyItem)}.{nameof(BaseProducibleObject.Subgroup)}"));
             ListView.IsLiveGrouping = true;
+            ListView.SortDescriptions.Add(new SortDescription($"{nameof(ProducibleItemWithAmount.MyItem)}.{nameof(BaseProducibleObject.Subgroup)}",ListSortDirection.Ascending));
+            ListView.SortDescriptions.Add(new SortDescription($"{nameof(ProducibleItemWithAmount.MyItem)}.{nameof(BaseProducibleObject.Order)}", ListSortDirection.Ascending));
+            ListView.IsLiveSorting = true;
         }
         public ListCollectionView ListView { get; }
 

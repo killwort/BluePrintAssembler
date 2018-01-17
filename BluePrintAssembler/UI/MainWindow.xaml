@@ -60,7 +60,9 @@
                     <DataTemplate DataType="{x:Type vm:ProducibleItem}">
                         <parts:ProducibleItem DataContext="{Binding}" Connection="{Binding}"
                                               StartPoint="{Binding Path=Egress.ConnectionPoint, Mode=OneWay}"
-                                              EndPoint="{Binding Path=Ingress.ConnectionPoint, Mode=OneWay}" />
+                                              EndPoint="{Binding Path=Ingress.ConnectionPoint, Mode=OneWay}"
+                                              Color="{Binding Path=BalanceColor,Mode=OneWay}"
+                                              />
                     </DataTemplate>
                     <DataTemplate DataType="{x:Type vm:SelectRecipe}">
                         <parts:SelectRecipe DataContext="{Binding}" />

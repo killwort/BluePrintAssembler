@@ -14,8 +14,11 @@ namespace BluePrintAssembler.Utils
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (typeof(Brush).IsAssignableFrom(targetType) && value is Bitmap bmp)
-                return new ImageBrush(Imaging.CreateBitmapSourceFromHBitmap(bmp.GetHbitmap(), IntPtr.Zero, Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions()));
+            try
+            {
+                if (typeof(Brush).IsAssignableFrom(targetType) && value is Bitmap bmp)
+                    return new ImageBrush(Imaging.CreateBitmapSourceFromHBitmap(bmp.GetHbitmap(), IntPtr.Zero, Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions()));
+            }catch{}
             return null;
         }
 

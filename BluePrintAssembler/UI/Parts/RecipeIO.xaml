@@ -7,5 +7,5 @@
              xmlns:utils="clr-namespace:BluePrintAssembler.Utils"
              mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800" LayoutUpdated="UserControl_LayoutUpdated">
-    <local:IconWithText Margin="3" DataContext="{Binding}" Icon="{Binding Icon}" NamedObject="{Binding RealItem}" Amount="{Binding MyItem.Amount}" />
+    <local:IconWithText Margin="3" DataContext="{Binding}" Icon="{Binding Icon}" NamedObject="{Binding RealItem}" Amount="{Binding Rate}" />
 </UserControl>

@@ -8,16 +8,16 @@
     xmlns:utils="clr-namespace:BluePrintAssembler.Utils"
     x:Class="BluePrintAssembler.UI.Parts.Recipe"
     mc:Ignorable="d"
-    d:DesignHeight="300" d:DesignWidth="800">
+    d:DesignHeight="300" d:DesignWidth="800" x:Name="Self">
     <UserControl.Resources>
         <utils:BitmapToImageSourceConverter x:Key="BitmapToImageSourceConverter" />
         <utils:NamedToLocalisedNameConverter x:Key="NamedToLocalisedNameConverter" />
     </UserControl.Resources>
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="*" />
-            <RowDefinition Height="5*" />
-            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <ItemsControl ItemsSource="{Binding Path=Sources}">
             <ItemsControl.ItemsPanel>
@@ -32,9 +32,51 @@
             </ItemsControl.ItemTemplate>
         </ItemsControl>
         <Border Grid.Row="1" BorderThickness="0.5" CornerRadius="5" BorderBrush="Black" Cursor="SizeAll" Background="AntiqueWhite">
-            <StackPanel Orientation="Vertical" Margin="6">
+            <StackPanel Orientation="Vertical" Margin="6" DataContext="{Binding}">
                 <TextBlock Margin="3" Text="{Binding MyRecipe.Category}" />
-                <local:IconWithText Margin="3" DataContext="{Binding}" Icon="{Binding Icon}" NamedObject="{Binding MyRecipe}" />
+                <local:IconWithText Margin="3" Icon="{Binding Icon}" NamedObject="{Binding MyRecipe}" />
+                <TextBlock Margin="3" Text="PRODUCERS" Visibility="{Binding ProducerSelectorVisibility}" />
+                <ItemsControl Visibility="{Binding ProducerSelectorVisibility}" ItemsSource="{Binding PossibleProducers}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Horizontal" IsItemsHost="True" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Button DataContext="{Binding}" Margin="3" Command="{Binding ElementName=Self, Path=DataContext.SelectProducer}" CommandParameter="{Binding}">
+                                <StackPanel>
+                                    <local:IconWithText HorizontalAlignment="Center" Icon="{Binding Icon}" NamedObject="{Binding MyEntity}" />
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                        <TextBlock Text="Speed" Margin="3" />
+                                        <TextBlock TextAlignment="Center" Margin="3" Text="{Binding MyEntity.CraftingSpeed}" />
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                        <TextBlock Text="Modules" Margin="3" />
+                                        <TextBlock TextAlignment="Center" Margin="3" Text="{Binding MyEntity.ModuleSpecification.Slots}" />
+                                    </StackPanel>
+                                </StackPanel>
+                            </Button>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <TextBlock Margin="3" Text="PRODUCER" Visibility="{Binding ProducerVisibility}" />
+                <StackPanel Orientation="Horizontal" Visibility="{Binding ProducerVisibility}">
+                    <TextBox VerticalAlignment="Center" Text="{Binding Producers,Mode=TwoWay}"/> 
+                    <TextBlock Text="×" VerticalAlignment="Center"/>
+                    <StackPanel>
+                        <local:IconWithText HorizontalAlignment="Center" Icon="{Binding Producer.Icon}" NamedObject="{Binding Producer.MyEntity}" />
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                            <TextBlock Text="Speed" Margin="3" />
+                            <TextBlock TextAlignment="Center" Margin="3" Text="{Binding Producer.MyEntity.CraftingSpeed}" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                            <TextBlock Text="Modules" Margin="3" />
+                            <TextBlock TextAlignment="Center" Margin="3" Text="{Binding Producer.MyEntity.ModuleSpecification.Slots}" />
+                        </StackPanel>
+                    </StackPanel>
+                </StackPanel>
             </StackPanel>
         </Border>
         <ItemsControl Grid.Row="2" ItemsSource="{Binding Path=Results}">

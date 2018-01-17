@@ -33,6 +33,17 @@
                     <WrapPanel Orientation="Horizontal" IsItemsHost="True"/>
                 </ItemsPanelTemplate>
             </ListBox.ItemsPanel>
+            <ListBox.GroupStyle>
+                <GroupStyle>
+                    <GroupStyle.HeaderTemplate>
+                        <DataTemplate>
+                            <Border BorderThickness="0 0 0 1" BorderBrush="Gray">
+                                <TextBlock Margin="6 3 6 3" Text="{Binding Name}" />
+                            </Border>
+                        </DataTemplate>
+                    </GroupStyle.HeaderTemplate>
+                </GroupStyle>
+            </ListBox.GroupStyle>
         </ListBox>
         <DockPanel Grid.Row="2">
             <Button Content="{x:Static resources:Parts.Select}" Click="CommitSelection"/>

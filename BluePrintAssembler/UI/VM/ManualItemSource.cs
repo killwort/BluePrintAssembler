@@ -13,6 +13,7 @@ namespace BluePrintAssembler.UI.VM
     public class ManualItemSource:BaseFlowNode,ISelectableElement,IAddableToFactory
     {
         private NotifyTaskCompletion<Bitmap> _icon;
+        public override float Speed => float.PositiveInfinity;
 
         public ManualItemSource(BaseProducibleObject result)
         {

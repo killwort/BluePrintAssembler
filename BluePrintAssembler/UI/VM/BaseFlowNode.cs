@@ -15,7 +15,7 @@ namespace BluePrintAssembler.UI.VM
         public abstract IEnumerable<Edge<IGraphNode>> EgressEdges { get; }
         public RecipeIO[] Sources { get; protected set; } = new RecipeIO[0];
         public RecipeIO[] Results { get; protected set; } = new RecipeIO[0];
-
+        public abstract float Speed { get; }
         private double _left;
         private double _top;
 
