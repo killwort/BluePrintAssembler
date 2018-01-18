@@ -9,7 +9,7 @@ using QuickGraph;
 namespace BluePrintAssembler.UI.VM
 {
     [Serializable]
-    public class SelectRecipe: BaseFlowNode, ISelectableElement, IAddableToFactory
+    public class SelectRecipe: BaseFlowNode, ISelectableElement
     {
         public override float Speed => 1;
 
@@ -38,17 +38,5 @@ namespace BluePrintAssembler.UI.VM
 
         public override IEnumerable<Edge<IGraphNode>> IngressEdges=>new Edge<IGraphNode>[0];
         public override IEnumerable<Edge<IGraphNode>> EgressEdges => Results.SelectMany(x => x.RelatedItems);
-
-        public event EventHandler<Recipe> RecipeUsed;
-        public event EventHandler<BaseProducibleObject> AddedToFactory;
-        public void UseRecipe(Recipe recipe)
-        {
-            RecipeUsed?.Invoke(this, recipe);
-        }
-
-        public void AddToFactory()
-        {
-            AddedToFactory?.Invoke(this, Results.First().RealItem);
-        }
     }
 }

@@ -256,7 +256,6 @@
       <DependentUpon>SelectItem.xaml</DependentUpon>
     </Compile>
     <Compile Include="UI\VM\BaseFlowNode.cs" />
-    <Compile Include="UI\VM\IAddableToFactory.cs" />
     <Compile Include="UI\VM\IGraphNode.cs" />
     <Compile Include="UI\VM\ISelectableElement.cs" />
     <Compile Include="UI\VM\MainWindow.cs" />
@@ -278,6 +277,7 @@
     <Compile Include="Utils\MyVisualTreeHelper.cs" />
     <Compile Include="Utils\NamedToLocalisedNameConverter.cs" />
     <Compile Include="Utils\NotifyTaskCompletion.cs" />
+    <Compile Include="Utils\TuplizerConverter.cs" />
     <Page Include="UI\MainWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
@@ -11,8 +12,10 @@ using BluePrintAssembler.UI.VM;
 using BluePrintAssembler.Utils;
 using GraphSharp;
 using GraphSharp.Algorithms.Layout.Simple.Hierarchical;
+using GraphSharp.Algorithms.Layout.Simple.Tree;
 using Microsoft.Win32;
 using Newtonsoft.Json;
+using ProducibleItem = BluePrintAssembler.UI.VM.ProducibleItem;
 
 namespace BluePrintAssembler
 {
@@ -28,16 +31,12 @@ namespace BluePrintAssembler
         private double _dragStartLeft;
         private double _dragStartTop;
         private SelectionAdorner _overlayElement;
-        private object _updaterLock = new object();
+        private readonly object _updaterLock = new object();
 
         public MainWindow()
         {
             InitializeComponent();
-        }
-
-        private void Button_Click(object sender, RoutedEventArgs e)
-        {
-            ((UI.VM.MainWindow) DataContext).CurrentWorkspace.TestAddItem();
+            ((UI.VM.MainWindow)DataContext).CurrentWorkspace.FlowChanged += Relayout;
         }
 
         private void DrawingAreaPreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -62,28 +61,17 @@ namespace BluePrintAssembler
         private void SelectElement(FrameworkElement element)
         {
             if (_overlayElement != null)
-            {
-                var l = AdornerLayer.GetAdornerLayer(_overlayElement.AdornedElement);
-                if (l != null)
-                    l.Remove(_overlayElement);
-            }
+                AdornerLayer.GetAdornerLayer(_overlayElement.AdornedElement)?.Remove(_overlayElement);
 
             if (element != null)
             {
-                //ParametersPanel.DataContext = element.DataContext;
                 _overlayElement = new SelectionAdorner(element);
                 _overlayElement.MouseLeftButtonDown += OverlayElementMouseLeftButtonDown;
-                var layer = AdornerLayer.GetAdornerLayer(element);
-                if (layer != null)
-                    layer.Add(_overlayElement);
+                AdornerLayer.GetAdornerLayer(element)?.Add(_overlayElement);
             }
             else
             {
-                //ParametersPanel.DataContext = null;
                 _overlayElement = null;
-                /*if (m_connectOrigin != null)
-                    m_connectOrigin.IsSelected = false;
-                m_connectOrigin = null;*/
             }
         }
 
@@ -107,14 +95,9 @@ namespace BluePrintAssembler
         private void DragStarted()
         {
             _isDragging = true;
-            //var ui =(UIElement) MyVisualTreeHelper.GetParentWithDataContext<DraggableElement>(_draggedDeviceVisual);
             var ui = (UIElement) MyVisualTreeHelper.GetParent<ContentPresenter>(_draggedDeviceVisual);
-            //var container = MyVisualTreeHelper.GetParent<DynamicCanvas>(_draggedDeviceVisual);
             _dragStartLeft = DynamicCanvas.GetLeft(ui);
-            //ui.Left;
             _dragStartTop = DynamicCanvas.GetTop(ui);
-            //ui.Top;
-
             SelectElement(_draggedDeviceVisual);
             _overlayElement.IsDragging = true;
         }
@@ -128,7 +111,6 @@ namespace BluePrintAssembler
                 {
                     if (cancelled == false)
                     {
-                        //var ui = (UIElement)MyVisualTreeHelper.GetParentWithDataContext<DraggableElement>(_draggedDeviceVisual);
                         var ui = (UIElement) MyVisualTreeHelper.GetParent<ContentPresenter>(_draggedDeviceVisual);
                         DynamicCanvas.SetTop(ui, _dragStartTop + _overlayElement.TopOffset);
                         DynamicCanvas.SetLeft(ui, _dragStartLeft + _overlayElement.LeftOffset);
@@ -136,7 +118,6 @@ namespace BluePrintAssembler
 
                     SelectElement(_draggedDeviceVisual);
                     _overlayElement.IsDragging = false;
-                    //ThreadPool.QueueUserWorkItem(UpdateConnections);
                 }
 
                 _isDragging = false;
@@ -155,15 +136,7 @@ namespace BluePrintAssembler
             {
                 DragFinished(false);
                 e.Handled = true;
-            } /*else
-            {
-                if(CreateDevice(e.GetPosition((FrameworkElement)e.Source)))
-                {
-                    e.Handled = true;
-                    SelectionTool.IsChecked = true;
-                }
-            }*/
-
+            } 
             Mouse.Capture(null);
         }
 
@@ -187,44 +160,49 @@ namespace BluePrintAssembler
         }
 
 
-        private void AutoLayout_Click(object sender, RoutedEventArgs e)
+        private void Relayout(object sender, EventArgs e)
         {
-            var w = ((UI.VM.MainWindow) DataContext).CurrentWorkspace;
-            if (w.VertexCount < 3)
+            Task.Run(() =>
             {
-                var off = new Point(0, 0);
-                foreach (var vertex in w.Vertices)
+                Task.Delay(500).Wait();
+                Dispatcher.Invoke(() =>
                 {
-                    var ui = (UIElement) DrawingArea.ItemContainerGenerator.ContainerFromItem(vertex);
-                    DynamicCanvas.SetLeft(ui, off.X);
-                    DynamicCanvas.SetTop(ui, off.Y);
-                    off.X += ui.DesiredSize.Width + 100;
-                    off.Y += ui.DesiredSize.Height + 100;
-                }
-            }
-            else
-            {
-                var sizes = w.Vertices.ToDictionary(x => x, x => ((UIElement) DrawingArea.ItemContainerGenerator.ContainerFromItem(x))?.DesiredSize ?? new Size(0, 0));
-                //var alg = new EfficientSugiyamaLayoutAlgorithm<IGraphNode, UI.VM.ProducibleItem, Workspace>(w, new EfficientSugiyamaLayoutParameters{VertexDistance = 100,PositionMode = 1}, new Dictionary<IGraphNode, Point>(), sizes);
-                var alg = new SugiyamaLayoutAlgorithm<IGraphNode, UI.VM.ProducibleItem, Workspace>(w, sizes, new Dictionary<IGraphNode, Point>(), new SugiyamaLayoutParameters {HorizontalGap = 50, VerticalGap = 50}, edge => EdgeTypes.Hierarchical);
-                alg.Compute();
-                var offX = 0.0;
-                var offY = 0.0;
-                foreach (var p in alg.VertexPositions)
-                {
-                    if (p.Value.X < offX) offX = p.Value.X;
-                    if (p.Value.Y < offY) offY = p.Value.Y;
-                }
+                    var w = ((UI.VM.MainWindow) DataContext).CurrentWorkspace;
 
-                foreach (var p in alg.VertexPositions)
-                {
-                    var ui = (UIElement) DrawingArea.ItemContainerGenerator.ContainerFromItem(p.Key);
-                    DynamicCanvas.SetLeft(ui, p.Value.X - offX);
-                    DynamicCanvas.SetTop(ui, p.Value.Y - offY);
-                }
-            }
+                    var sizes = w.Vertices.ToDictionary(x => x, x => ((UIElement) DrawingArea.ItemContainerGenerator.ContainerFromItem(x))?.DesiredSize ?? new Size(0, 0));
+                    GraphSharp.Algorithms.Layout.ILayoutAlgorithm<IGraphNode, ProducibleItem, Workspace> alg;
+                    if (w.VertexCount < 3)
+                    {
+                        alg = new SimpleTreeLayoutAlgorithm<IGraphNode, ProducibleItem, Workspace>(w, new Dictionary<IGraphNode, Point>(), sizes, new SimpleTreeLayoutParameters {VertexGap = 50});
+                    }
+                    else
+                    {
+                        alg = new SugiyamaLayoutAlgorithm<IGraphNode, UI.VM.ProducibleItem, Workspace>(w, sizes, new Dictionary<IGraphNode, Point>(), new SugiyamaLayoutParameters {HorizontalGap = 50, VerticalGap = 50}, edge => EdgeTypes.Hierarchical);
+                    }
 
-            //MyVisualTreeHelper.GetChild<DynamicCanvas>(DrawingArea).AutoLayout();
+                    //var alg = new EfficientSugiyamaLayoutAlgorithm<IGraphNode, UI.VM.ProducibleItem, Workspace>(w, new EfficientSugiyamaLayoutParameters{VertexDistance = 100,PositionMode = 1}, new Dictionary<IGraphNode, Point>(), sizes);
+                    alg.Compute();
+                    var offX = 0.0;
+                    var offY = 0.0;
+                    foreach (var p in alg.VertexPositions)
+                    {
+                        if (p.Value.X < offX) offX = p.Value.X;
+                        if (p.Value.Y < offY) offY = p.Value.Y;
+                    }
+
+                    foreach (var p in alg.VertexPositions)
+                    {
+                        var n = p.Key as BaseFlowNode;
+                        if (n == null) continue;
+                        n.LayoutLeft = p.Value.X - offX;
+                        n.LayoutTop = p.Value.Y - offY;
+                        /*var ui = (UIElement) DrawingArea.ItemContainerGenerator.ContainerFromItem(p.Key);
+                        DynamicCanvas.SetLeft(ui, p.Value.X - offX);
+                        DynamicCanvas.SetTop(ui, p.Value.Y - offY);*/
+
+                    }
+                });
+            });
         }
 
         private void Save_Click(object sender, RoutedEventArgs e)
@@ -234,9 +212,8 @@ namespace BluePrintAssembler
                 Formatting = Formatting.Indented,
                 TypeNameHandling = TypeNameHandling.Auto
             };
-            var dialog=new SaveFileDialog();
-            dialog.Filter = BluePrintAssembler.Resources.MainWindow.FileFilter;
-            if (dialog.ShowDialog(this) ?? false)
+            var dialog = new SaveFileDialog {Filter = BluePrintAssembler.Resources.MainWindow.FileFilter};
+            if ((bool) dialog.ShowDialog(this))
                 File.WriteAllText(dialog.FileName, JsonConvert.SerializeObject(DataContext,jss));
         }
         private void Load_Click(object sender, RoutedEventArgs e)
@@ -246,24 +223,26 @@ namespace BluePrintAssembler
                 Formatting = Formatting.Indented,
                 TypeNameHandling = TypeNameHandling.Auto
             };
-            var dialog=new OpenFileDialog();
-            dialog.Filter = BluePrintAssembler.Resources.MainWindow.FileFilter;
-            if (dialog.ShowDialog(this) ?? false)
+            var dialog = new OpenFileDialog {Filter = BluePrintAssembler.Resources.MainWindow.FileFilter};
+            if ((bool) dialog.ShowDialog(this))
+            {
                 DataContext = JsonConvert.DeserializeObject<UI.VM.MainWindow>(File.ReadAllText(dialog.FileName), jss);
+                ((UI.VM.MainWindow)DataContext).CurrentWorkspace.FlowChanged += Relayout;
+            }
         }
 
         private void AddResult_Click(object sender, RoutedEventArgs e)
         {
             var dialog=new UI.SelectItem();
             if (dialog.ShowDialog() ?? false)
-                ((UI.VM.MainWindow) DataContext).CurrentWorkspace.WantedResults.Add(((UI.VM.SelectItem) dialog.DataContext).SelectedItem);
+                ((UI.VM.MainWindow) DataContext).CurrentWorkspace.WantedResults.Add(((SelectItem) dialog.DataContext).SelectedItem);
         }
 
         private void AddSource_Click(object sender, RoutedEventArgs e)
         {
             var dialog=new UI.SelectItem();
             if (dialog.ShowDialog() ?? false)
-                ((UI.VM.MainWindow) DataContext).CurrentWorkspace.ExistingSources.Add(((UI.VM.SelectItem) dialog.DataContext).SelectedItem);
+                ((UI.VM.MainWindow) DataContext).CurrentWorkspace.ExistingSources.Add(((SelectItem) dialog.DataContext).SelectedItem);
         }
     }
 }

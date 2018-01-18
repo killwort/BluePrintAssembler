@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 
 namespace BluePrintAssembler.UI.Parts
 {
@@ -13,14 +14,22 @@ namespace BluePrintAssembler.UI.Parts
             InitializeComponent();
         }
 
-        private void DoUseRecipe(object sender, RoutedEventArgs e)
+        public static readonly DependencyProperty AddToFactoryProperty = DependencyProperty.Register(
+            "AddToFactory", typeof(ICommand), typeof(SelectRecipe), new PropertyMetadata(default(ICommand)));
+
+        public ICommand AddToFactory
         {
-            ((VM.SelectRecipe) DataContext).UseRecipe((VM.Recipe) ((FrameworkElement) e.Source).DataContext);
+            get { return (ICommand) GetValue(AddToFactoryProperty); }
+            set { SetValue(AddToFactoryProperty, value); }
         }
 
-        private void DoAddToFactory(object sender, RoutedEventArgs e)
+        public static readonly DependencyProperty UseRecipeProperty = DependencyProperty.Register(
+            "UseRecipe", typeof(ICommand), typeof(SelectRecipe), new PropertyMetadata(default(ICommand)));
+
+        public ICommand UseRecipe
         {
-            ((VM.SelectRecipe) DataContext).AddToFactory();
+            get { return (ICommand) GetValue(UseRecipeProperty); }
+            set { SetValue(UseRecipeProperty, value); }
         }
     }
 }

@@ -20,6 +20,8 @@ namespace BluePrintAssembler.Utils
 
         private string Convert(double d)
         {
+            if (double.IsInfinity(d))
+                return d.ToString();
             var neg = d < -Double.Epsilon;
             d = Math.Abs(d);
             if (d == 0) return "0";

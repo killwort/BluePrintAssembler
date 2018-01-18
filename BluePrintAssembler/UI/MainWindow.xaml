@@ -10,6 +10,7 @@
         xmlns:resources="clr-namespace:BluePrintAssembler.Resources"
         xmlns:domain="clr-namespace:BluePrintAssembler.Domain"
         mc:Ignorable="d"
+        x:Name="SelfWindow"
         Title="MainWindow" Height="450" Width="800">
     <Window.DataContext>
         <vm:MainWindow />
@@ -27,14 +28,11 @@
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
-        <ToolBar Grid.ColumnSpan="3">
-            <ToolBarPanel>
-                <Button Click="Button_Click">Create some elements</Button>
-                <Button Click="AutoLayout_Click">AutoLayout</Button>
-                <Button Click="Save_Click">Save</Button>
-                <Button Click="Load_Click">Load</Button>
-            </ToolBarPanel>
-        </ToolBar>
+        <StackPanel Orientation="Horizontal" Grid.ColumnSpan="3">
+            <StackPanel Width="30"/>
+            <Button HorizontalAlignment="Left" Click="Load_Click">Load</Button>
+            <Button HorizontalAlignment="Left" Click="Save_Click">Save</Button>
+        </StackPanel>
         <ScrollViewer Grid.Column="1" Grid.Row="1" PanningMode="Both" HorizontalScrollBarVisibility="Auto"
                       VerticalScrollBarVisibility="Auto">
             <ItemsControl Name="DrawingArea" ItemsSource="{Binding Path=CurrentWorkspace.RenderableElements}"
@@ -65,10 +63,10 @@
                                               />
                     </DataTemplate>
                     <DataTemplate DataType="{x:Type vm:SelectRecipe}">
-                        <parts:SelectRecipe DataContext="{Binding}" />
+                        <parts:SelectRecipe DataContext="{Binding}" AddToFactory="{Binding ElementName=SelfWindow, Path=DataContext.CurrentWorkspace.AddToFactory}" UseRecipe="{Binding ElementName=SelfWindow, Path=DataContext.CurrentWorkspace.UseRecipe}" />
                     </DataTemplate>
                     <DataTemplate DataType="{x:Type vm:ManualItemSource}">
-                        <parts:ManualItemSource DataContext="{Binding}" />
+                        <parts:ManualItemSource DataContext="{Binding}" AddToFactory="{Binding ElementName=SelfWindow, Path=DataContext.CurrentWorkspace.AddToFactory}" />
                     </DataTemplate>
                 </ItemsControl.Resources>
             </ItemsControl>

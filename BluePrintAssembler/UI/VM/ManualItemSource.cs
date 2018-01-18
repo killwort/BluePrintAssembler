@@ -10,7 +10,7 @@ using QuickGraph;
 namespace BluePrintAssembler.UI.VM
 {
     [Serializable]
-    public class ManualItemSource:BaseFlowNode,ISelectableElement,IAddableToFactory
+    public class ManualItemSource:BaseFlowNode,ISelectableElement
     {
         private NotifyTaskCompletion<Bitmap> _icon;
         public override float Speed => float.PositiveInfinity;
@@ -25,13 +25,6 @@ namespace BluePrintAssembler.UI.VM
         public override IEnumerable<Edge<IGraphNode>> IngressEdges=>new Edge<IGraphNode>[0];
         public override IEnumerable<Edge<IGraphNode>> EgressEdges => Results.SelectMany(x => x.RelatedItems);
         public NotifyTaskCompletion<Bitmap> Icon => _icon ?? (_icon = new NotifyTaskCompletion<Bitmap>(Configuration.Instance.GetIcon(MyItem)));
-
-        public event EventHandler<BaseProducibleObject> AddedToFactory;
-
-        public void AddToFactory()
-        {
-            AddedToFactory?.Invoke(this, Results.First().RealItem);
-        }
 
         public override void GetObjectData(SerializationInfo info, StreamingContext context)
         {

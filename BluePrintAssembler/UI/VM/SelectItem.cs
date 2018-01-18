@@ -29,7 +29,7 @@ namespace BluePrintAssembler.UI.VM
                 if (string.IsNullOrWhiteSpace(_filter))
                     ListView.Filter = o => true;
                 else
-                    ListView.Filter = o => ((ProducibleItemWithAmount) o).MyItem.Name.ToLower().Contains(_filter.ToLower().Trim());
+                    ListView.Filter = o => Configuration.Instance.RawData.LocalisedName(((ProducibleItemWithAmount) o).MyItem, null).ToLower().Contains(_filter.ToLower().Trim());
             }
         }
         public ProducibleItemWithAmount SelectedItem { get; set; }

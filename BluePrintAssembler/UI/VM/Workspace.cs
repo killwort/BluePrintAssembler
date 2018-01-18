@@ -5,7 +5,9 @@ using System.Collections.Specialized;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Windows.Data;
+using System.Windows.Input;
 using BluePrintAssembler.Domain;
+using BluePrintAssembler.Utils;
 using QuickGraph;
 
 namespace BluePrintAssembler.UI.VM
@@ -13,10 +15,15 @@ namespace BluePrintAssembler.UI.VM
     [Serializable]
     public class Workspace : IBidirectionalGraph<IGraphNode, ProducibleItem>,ISerializable
     {
+        public ICommand UseRecipe { get; private set; }
+        public ICommand AddToFactory { get; private set; }
         public Workspace()
         {
             WantedResults.CollectionChanged += CallFixProductionFlow;
             ExistingSources.CollectionChanged += CallFixProductionFlow;
+
+            AddToFactory=new DelegateCommand<BaseFlowNode>(AddedToFactory);
+            UseRecipe=new DelegateCommand<Tuple<BaseFlowNode,Recipe>>(SelectorRecipeUsed);
         }
 
         
@@ -49,7 +56,7 @@ namespace BluePrintAssembler.UI.VM
                 {
                     var satisfier = new ManualItemSource(result);
                     ProductionNodes.Add(satisfier);
-                    Bind(satisfier);
+                    //Bind(satisfier);
                     _satisfierNodes[result] = satisfier;
                 }
                 else if (possibleRecipies.Length == 1 || selectedRecipe != null)
@@ -77,7 +84,7 @@ namespace BluePrintAssembler.UI.VM
                 {
                     var selector = new SelectRecipe(possibleRecipies.Select(x => x.Value), result);
                     ProductionNodes.Add(selector);
-                    Bind(selector);
+                    //Bind(selector);
                     _satisfierNodes[result] = selector;
                 }
             }
@@ -92,7 +99,10 @@ namespace BluePrintAssembler.UI.VM
                     Items.Add(edge);
                 }
             }
+            FlowChanged?.Invoke(this,EventArgs.Empty);
         }
+
+        public event EventHandler FlowChanged;
 
         private void AddedToFactory(object sender, BaseProducibleObject e)
         {
@@ -101,14 +111,24 @@ namespace BluePrintAssembler.UI.VM
             ExistingSources.Add(new ProducibleItemWithAmount(e));
             FixProductionFlow();
         }
-
-        private void SelectorRecipeUsed(object sender, Recipe e)
+        private void AddedToFactory(BaseFlowNode e)
         {
-            var satisfier = _satisfierNodes.First(x => x.Value == sender);
-            ProductionNodes.Remove((SelectRecipe) sender);
-            _selectedRecipies[satisfier.Key] = e.MyRecipe;
-            var newSatisfier = new Recipe(e.MyRecipe);
-            foreach (var egress in e.MyRecipe.CurrentMode.Results)
+            ProductionNodes.Remove(e);
+            foreach (var r in e.Results)
+            {
+                _satisfierNodes.Remove(r.RealItem);
+                ExistingSources.Add(new ProducibleItemWithAmount(r.RealItem));
+            }
+
+            FixProductionFlow();
+        }
+        private void SelectorRecipeUsed(Tuple<BaseFlowNode,Recipe> e)
+        {
+            var satisfier = _satisfierNodes.First(x => x.Value == e.Item1);
+            ProductionNodes.Remove(e.Item1);
+            _selectedRecipies[satisfier.Key] = e.Item2.MyRecipe;
+            var newSatisfier = new Recipe(e.Item2.MyRecipe);
+            foreach (var egress in e.Item2.MyRecipe.CurrentMode.Results)
                 _satisfierNodes[Configuration.Instance.RawData.Get(egress.Value.Type, egress.Value.Name)] = newSatisfier;
             ProductionNodes.Add(newSatisfier);
             FixProductionFlow();
@@ -265,9 +285,12 @@ namespace BluePrintAssembler.UI.VM
         }
         public Workspace(SerializationInfo info, StreamingContext context)
         {
+            AddToFactory=new DelegateCommand<BaseFlowNode>(AddedToFactory);
+            UseRecipe=new DelegateCommand<Tuple<BaseFlowNode,Recipe>>(SelectorRecipeUsed);
+
             ProductionNodes=new ObservableCollection<BaseFlowNode>((BaseFlowNode[])info.GetValue("Nodes", typeof(BaseFlowNode[])));
-            foreach (var node in ProductionNodes)
-                Bind(node);
+            /*foreach (var node in ProductionNodes)
+                Bind(node);*/
             _satisfierNodes=ProductionNodes.SelectMany(x => x.Results).ToLookup(x => x.RealItem, x => x.Parent).ToDictionary(x=>x.Key,x=>x.First());
             _selectedRecipies = ((SelectedRecipe[]) info.GetValue("SelectedRecipes", typeof(SelectedRecipe[])))
                 .ToDictionary(x => x.KV.Key, x => x.KV.Value);
@@ -276,12 +299,12 @@ namespace BluePrintAssembler.UI.VM
             FixProductionFlow();
         }
 
-        private void Bind(BaseFlowNode selector)
+        /*private void Bind(BaseFlowNode selector)
         {
             if (selector is SelectRecipe r)
                 r.RecipeUsed += SelectorRecipeUsed;
             if(selector is IAddableToFactory f)
                 f.AddedToFactory += AddedToFactory;
-        }
+        }*/
     }
 }

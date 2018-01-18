@@ -39,7 +39,7 @@ namespace BluePrintAssembler.UI.VM
                 if (Equals(value, _egress)) return;
                 _egress = value;
                 if(_egress!=null)
-                    _egress.PropertyChanged -= MaybeRecalcBalanceColor;
+                    _egress.PropertyChanged += MaybeRecalcBalanceColor;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(BalanceColor));
             }

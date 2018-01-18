@@ -1,21 +1,26 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 
 namespace BluePrintAssembler.UI.Parts
 {
-    /// <summary>
-    /// Interaction logic for ManualItemSource.xaml
-    /// </summary>
+
+    public class AddableToFactoryUserControl:UserControl{
+
+    }
     public partial class ManualItemSource : UserControl
     {
         public ManualItemSource()
         {
             InitializeComponent();
         }
+        
+        public static readonly DependencyProperty AddToFactoryProperty = DependencyProperty.Register("AddToFactory", typeof(ICommand), typeof(ManualItemSource), new PropertyMetadata(default(ICommand)));
 
-        private void AddToFactory(object sender, RoutedEventArgs e)
+        public ICommand AddToFactory
         {
-            ((VM.ManualItemSource) DataContext).AddToFactory();
+            get { return (ICommand) GetValue(AddToFactoryProperty); }
+            set { SetValue(AddToFactoryProperty, value); }
         }
     }
 }

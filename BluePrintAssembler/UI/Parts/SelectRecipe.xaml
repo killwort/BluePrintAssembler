@@ -7,11 +7,20 @@
     xmlns:vm="clr-namespace:BluePrintAssembler.UI.VM"
     xmlns:utils="clr-namespace:BluePrintAssembler.Utils"
     xmlns:resources="clr-namespace:BluePrintAssembler.Resources"
+    xmlns:system="clr-namespace:System;assembly=mscorlib"
     x:Class="BluePrintAssembler.UI.Parts.SelectRecipe"
     mc:Ignorable="d"
+    x:Name="Self"
     d:DesignHeight="300" d:DesignWidth="800">
     <UserControl.Resources>
-        <utils:BitmapToImageSourceConverter x:Key="BitmapToImageSourceConverter" />
+        <utils:TuplizerConverter x:Key="TuplizerConverter">
+            <utils:TuplizerConverter.Types>
+                <x:Array Type="system:Type">
+                    <x:Type TypeName="vm:BaseFlowNode" />
+                    <x:Type TypeName="vm:Recipe" />
+                </x:Array>
+            </utils:TuplizerConverter.Types>
+        </utils:TuplizerConverter>
         <utils:NamedToLocalisedNameConverter x:Key="NamedToLocalisedNameConverter" />
     </UserControl.Resources>
     <Grid>
@@ -32,7 +41,7 @@
                 </Grid.ColumnDefinitions>
                 <TextBlock Margin="3" VerticalAlignment="Center" Text="{x:Static resources:Parts.SelectRecipeForProducing}" />
                 <TextBlock Margin="3" Grid.Column="1" Grid.Row="0" VerticalAlignment="Center" Text="{Binding Path=Results[0].RealItem, Converter={StaticResource NamedToLocalisedNameConverter}}" />
-                <Button Margin="3" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Content="{x:Static resources:Parts.AddToFactoryOutput}" Click="DoAddToFactory" />
+                <Button Margin="3" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Content="{x:Static resources:Parts.AddToFactoryOutput}" Command="{Binding ElementName=Self, Path=AddToFactory}" CommandParameter="{Binding}" />
                 <ItemsControl Margin="3 10 3 3" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" ItemsSource="{Binding Path=PossibleRecipes}">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
@@ -73,7 +82,14 @@
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>
-                                <Button HorizontalAlignment="Right" Grid.Column="3" Margin="3" VerticalAlignment="Center" Content="{x:Static resources:Parts.Select}" Click="DoUseRecipe" />
+                                <Button HorizontalAlignment="Right" Grid.Column="3" Margin="3" VerticalAlignment="Center" Content="{x:Static resources:Parts.Select}" Command="{Binding ElementName=Self, Path=UseRecipe}">
+                                    <Button.CommandParameter>
+                                        <MultiBinding Converter="{StaticResource TuplizerConverter}" >
+                                            <Binding Path="DataContext" ElementName="Self"/>
+                                            <Binding />
+                                        </MultiBinding>
+                                    </Button.CommandParameter>
+                                </Button>
                             </Grid>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
