@@ -19,6 +19,7 @@ settings.startup = {}
 -- provide required functions
 function log(...) end
 function module(...) end
+function get_circuit_connector_sprites(...) end
 
 serpent = {}
 function serpent.dump(...) return "" end

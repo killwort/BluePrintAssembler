@@ -13,20 +13,22 @@
         <utils:BitmapToBrushConverter x:Key="BitmapToBrushConverter" />
         <utils:NamedToLocalisedNameConverter x:Key="NamedToLocalisedNameConverter" />
         <utils:AmountToStringConverter x:Key="AmountToStringConverter"/>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
     </UserControl.Resources>
     <Border BorderThickness="1" BorderBrush="#403b35" Width="36" Height="36">
-        <Grid Background="{Binding Source={x:Static domain:Configuration.Instance}, Path=StdIconSlot, Converter={StaticResource BitmapToBrushConverter}}" ToolTip="{Binding ElementName=Self, Path=NamedObject, Mode=OneWay, Converter={StaticResource NamedToLocalisedNameConverter}}">
+        <Grid Background="{Binding Source={x:Static domain:Configuration.Instance}, Path=StdIconSlot, Converter={StaticResource BitmapToBrushConverter}}" ToolTip="{Binding ElementName=Self, Path=NamedObject, Mode=OneWay, Converter={StaticResource NamedToLocalisedNameConverter}}" MouseLeftButtonUp="UIElement_OnMouseLeftButtonUp">
             <Image Source="{Binding Path=Icon.Result, ElementName=Self, Mode=OneWay, Converter={StaticResource BitmapToImageSourceConverter}}" />
-            <TextBlock FontWeight="Bold" RenderOptions.ClearTypeHint="Enabled" Text="{Binding ElementName=Self, Mode=OneWay, Path=Amount, Converter={StaticResource AmountToStringConverter}}" TextAlignment="Right" VerticalAlignment="Bottom" Margin="3" Foreground="Black">
+            <TextBlock Visibility="{Binding ElementName=Self, Path=IsNotEdited, Converter={StaticResource BooleanToVisibilityConverter}}" FontWeight="Bold" RenderOptions.ClearTypeHint="Enabled" Text="{Binding ElementName=Self, Mode=OneWay, Path=Amount, Converter={StaticResource AmountToStringConverter}}" TextAlignment="Right" VerticalAlignment="Bottom" Margin="3" Foreground="Black">
                 <TextBlock.Effect>
                     <BlurEffect Radius="3" />
                 </TextBlock.Effect>
             </TextBlock>
-            <TextBlock FontWeight="Bold" RenderOptions.ClearTypeHint="Enabled" Text="{Binding ElementName=Self, Mode=OneWay, Path=Amount, Converter={StaticResource AmountToStringConverter}}" TextAlignment="Right" VerticalAlignment="Bottom" Margin="3" Foreground="White">
+            <TextBlock Visibility="{Binding ElementName=Self, Path=IsNotEdited, Converter={StaticResource BooleanToVisibilityConverter}}" FontWeight="Bold" RenderOptions.ClearTypeHint="Enabled" Text="{Binding ElementName=Self, Mode=OneWay, Path=Amount, Converter={StaticResource AmountToStringConverter}}" TextAlignment="Right" VerticalAlignment="Bottom" Margin="3" Foreground="White">
                 <TextBlock.Effect>
                     <DropShadowEffect ShadowDepth="0" Direction="0" Color="Black" BlurRadius="2" />
                 </TextBlock.Effect>
             </TextBlock>
+            <TextBox Visibility="{Binding ElementName=Self, Path=IsEdited, Converter={StaticResource BooleanToVisibilityConverter}}"  Text="{Binding ElementName=Self, Mode=TwoWay, Path=Amount, Converter={StaticResource AmountToStringConverter}}" Margin="3" HorizontalAlignment="Right" VerticalAlignment="Bottom" x:Name="AmountTextBox"/>
         </Grid>
     </Border>
 </UserControl>

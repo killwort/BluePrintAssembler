@@ -1,6 +1,7 @@
 ﻿using System.Drawing;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using BluePrintAssembler.Domain;
 using BluePrintAssembler.Utils;
 
@@ -41,6 +42,38 @@ namespace BluePrintAssembler.UI.Parts
         {
             get { return (INamed) GetValue(NamedObjectProperty); }
             set { SetValue(NamedObjectProperty, value); }
+        }
+
+        public static readonly DependencyProperty AmountEditableProperty = DependencyProperty.Register(
+            "AmountEditable", typeof(bool), typeof(IconWithText), new PropertyMetadata(default(bool)));
+
+        public bool AmountEditable
+        {
+            get { return (bool) GetValue(AmountEditableProperty); }
+            set { SetValue(AmountEditableProperty, value); }
+        }
+
+        public static readonly DependencyProperty IsEditedProperty = DependencyProperty.Register(
+            "IsEdited", typeof(bool), typeof(IconWithText), new PropertyMetadata(default(bool)));
+
+        public bool IsEdited
+        {
+            get { return (bool) GetValue(IsEditedProperty); }
+            set { SetValue(IsEditedProperty, value); }
+        }
+        public bool IsNotEdited
+        {
+            get { return !(bool)GetValue(IsEditedProperty); }
+            set { SetValue(IsEditedProperty, !value); }
+        }
+
+        private void UIElement_OnMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            if (AmountEditable)
+            {
+                IsEdited = true;
+                AmountTextBox.Focus();
+            }
         }
     }
 }
