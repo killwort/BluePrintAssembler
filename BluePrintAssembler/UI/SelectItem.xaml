@@ -8,29 +8,36 @@
         xmlns:utils="clr-namespace:BluePrintAssembler.Utils"
         xmlns:resources="clr-namespace:BluePrintAssembler.Resources"
         mc:Ignorable="d"
-        Title="SelectItem" Height="450" Loaded="SelectItem_OnLoaded" Width="800">
+        Title="{x:Static resources:SelectItem.Title}" Height="450" Loaded="SelectItem_OnLoaded" Width="800">
     <Window.Resources>
         <utils:NamedToLocalisedNameConverter x:Key="NamedToLocalisedNameConverter" />
     </Window.Resources>
-    <Grid>
+    <Grid Margin="6">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <TextBox Margin="3" Text="{Binding Path=Filter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Delay=500}"></TextBox>
-        <ListBox Grid.Row="1" MouseDoubleClick="CommitSelection" Margin="3" SelectedItem="{Binding Path=SelectedItem}" ItemsSource="{Binding Path=ListView}" ScrollViewer.HorizontalScrollBarVisibility="Disabled"  ScrollViewer.VerticalScrollBarVisibility="Auto">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <TextBlock VerticalAlignment="Center" Margin="3" Text="{x:Static resources:SelectItem.Filter}"/>
+        <TextBox Grid.Column="1" Margin="3" Text="{Binding Path=Filter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Delay=500}" />
+        <TextBlock Margin="3 6 3 3" Grid.Row="1" Grid.ColumnSpan="2" Text="{x:Static resources:SelectItem.Items}"/>
+        <ListBox Grid.Row="2"  Grid.ColumnSpan="2" MouseDoubleClick="CommitSelection" Margin="3" SelectedItem="{Binding Path=SelectedItem}" ItemsSource="{Binding Path=ListView}" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Auto">
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <StackPanel Orientation="Vertical" Width="100">
                         <parts:IconWithText HorizontalAlignment="Center" NamedObject="{Binding Path=MyItem}" Icon="{Binding Path=Icon}" />
-                        <TextBlock MaxWidth="100" TextWrapping="NoWrap" ClipToBounds="True" TextAlignment="Center" Text="{Binding Path=MyItem, Mode=OneWay, Converter={StaticResource NamedToLocalisedNameConverter}}"/>
+                        <TextBlock MaxWidth="100" TextWrapping="NoWrap" ClipToBounds="True" TextAlignment="Center" Text="{Binding Path=MyItem, Mode=OneWay, Converter={StaticResource NamedToLocalisedNameConverter}}" />
                     </StackPanel>
                 </DataTemplate>
             </ListBox.ItemTemplate>
             <ListBox.ItemsPanel>
                 <ItemsPanelTemplate>
-                    <WrapPanel Orientation="Horizontal" IsItemsHost="True"/>
+                    <WrapPanel ItemWidth="120" ItemHeight="90" Orientation="Horizontal" IsItemsHost="True" />
                 </ItemsPanelTemplate>
             </ListBox.ItemsPanel>
             <ListBox.GroupStyle>
@@ -45,9 +52,8 @@
                 </GroupStyle>
             </ListBox.GroupStyle>
         </ListBox>
-        <DockPanel Grid.Row="2">
-            <Button Content="{x:Static resources:Parts.Select}" Click="CommitSelection"/>
+        <DockPanel Margin="0 6 0 0" Grid.Row="3" Grid.ColumnSpan="2">
+            <Button HorizontalAlignment="Right" Content="{x:Static resources:Parts.Select}" Click="CommitSelection" DockPanel.Dock="Right" Margin="3" Padding="12 6" />
         </DockPanel>
     </Grid>
 </Window>
-

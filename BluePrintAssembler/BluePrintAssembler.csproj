@@ -214,6 +214,11 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Parts.resx</DependentUpon>
     </Compile>
+    <Compile Include="Resources\SelectItem.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>SelectItem.resx</DependentUpon>
+    </Compile>
     <Compile Include="Steam\Buffer.cs" />
     <Compile Include="Steam\Errors.cs" />
     <Compile Include="Steam\FatalError.cs" />
@@ -347,6 +352,10 @@
     <EmbeddedResource Include="Resources\Parts.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>Parts.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\SelectItem.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>SelectItem.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <EmbeddedResource Include="Resources\Splash.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>

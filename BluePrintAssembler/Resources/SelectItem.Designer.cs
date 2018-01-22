@@ -22,14 +22,14 @@ namespace BluePrintAssembler.Resources {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    public class MainWindow {
+    public class SelectItem {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
         private static global::System.Globalization.CultureInfo resourceCulture;
         
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
-        internal MainWindow() {
+        internal SelectItem() {
         }
         
         /// <summary>
@@ -39,7 +39,7 @@ namespace BluePrintAssembler.Resources {
         public static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("BluePrintAssembler.Resources.MainWindow", typeof(MainWindow).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("BluePrintAssembler.Resources.SelectItem", typeof(SelectItem).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -61,38 +61,29 @@ namespace BluePrintAssembler.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to My factory.
+        ///   Looks up a localized string similar to Quick filter.
         /// </summary>
-        public static string ExistingSources {
+        public static string Filter {
             get {
-                return ResourceManager.GetString("ExistingSources", resourceCulture);
+                return ResourceManager.GetString("Filter", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to BluePrintAssembler Layouts|*.bpal|All Files|*.*.
+        ///   Looks up a localized string similar to Matching items.
         /// </summary>
-        public static string FileFilter {
+        public static string Items {
             get {
-                return ResourceManager.GetString("FileFilter", resourceCulture);
+                return ResourceManager.GetString("Items", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Blueprint Assembler.
+        ///   Looks up a localized string similar to Select item.
         /// </summary>
         public static string Title {
             get {
                 return ResourceManager.GetString("Title", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Flow output.
-        /// </summary>
-        public static string WantedResults {
-            get {
-                return ResourceManager.GetString("WantedResults", resourceCulture);
             }
         }
     }

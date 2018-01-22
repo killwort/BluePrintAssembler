@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -32,11 +34,20 @@ namespace BluePrintAssembler
         private double _dragStartTop;
         private SelectionAdorner _overlayElement;
         private readonly object _updaterLock = new object();
+        private readonly Timer _autosaveTimer;
+        private string _savedFilename;
 
+
+        private string AutosavePath=>Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "BluePrintAssembler", "autosave.bpal");
         public MainWindow()
         {
             InitializeComponent();
             ((UI.VM.MainWindow)DataContext).CurrentWorkspace.FlowChanged += Relayout;
+
+            if (File.Exists(AutosavePath))
+                Load(AutosavePath);
+            _autosaveTimer=new Timer(o => Dispatcher.Invoke(()=>Save(AutosavePath)), null, TimeSpan.FromSeconds(10), TimeSpan.FromMinutes(1));
         }
 
         private void DrawingAreaPreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -192,14 +203,9 @@ namespace BluePrintAssembler
 
                     foreach (var p in alg.VertexPositions)
                     {
-                        var n = p.Key as BaseFlowNode;
-                        if (n == null) continue;
+                        if (!(p.Key is BaseFlowNode n)) continue;
                         n.LayoutLeft = p.Value.X - offX;
                         n.LayoutTop = p.Value.Y - offY;
-                        /*var ui = (UIElement) DrawingArea.ItemContainerGenerator.ContainerFromItem(p.Key);
-                        DynamicCanvas.SetLeft(ui, p.Value.X - offX);
-                        DynamicCanvas.SetTop(ui, p.Value.Y - offY);*/
-
                     }
                 });
             });
@@ -207,28 +213,47 @@ namespace BluePrintAssembler
 
         private void Save_Click(object sender, RoutedEventArgs e)
         {
+            if (string.IsNullOrEmpty(_savedFilename))
+            {
+                var dialog = new SaveFileDialog {Filter = BluePrintAssembler.Resources.MainWindow.FileFilter};
+                if ((bool) dialog.ShowDialog(this))
+                    Save(_savedFilename = dialog.FileName);
+            }
+            else
+                Save(_savedFilename);
+        }
+        private void SaveAs_Click(object sender, RoutedEventArgs e)
+        {
+            var dialog = new SaveFileDialog {Filter = BluePrintAssembler.Resources.MainWindow.FileFilter};
+            if ((bool) dialog.ShowDialog(this))
+                Save(_savedFilename = dialog.FileName);
+        }
+        private void Load_Click(object sender, RoutedEventArgs e)
+        {
+            var dialog = new OpenFileDialog {Filter = BluePrintAssembler.Resources.MainWindow.FileFilter};
+            if ((bool) dialog.ShowDialog(this))
+                Load(_savedFilename = dialog.FileName);
+        }
+
+        private void Save(string filename)
+        {
             var jss=new JsonSerializerSettings
             {
                 Formatting = Formatting.Indented,
                 TypeNameHandling = TypeNameHandling.Auto
             };
-            var dialog = new SaveFileDialog {Filter = BluePrintAssembler.Resources.MainWindow.FileFilter};
-            if ((bool) dialog.ShowDialog(this))
-                File.WriteAllText(dialog.FileName, JsonConvert.SerializeObject(DataContext,jss));
+            File.WriteAllText(filename, JsonConvert.SerializeObject(DataContext,jss));
         }
-        private void Load_Click(object sender, RoutedEventArgs e)
+
+        private void Load(string filename)
         {
             var jss = new JsonSerializerSettings
             {
                 Formatting = Formatting.Indented,
                 TypeNameHandling = TypeNameHandling.Auto
             };
-            var dialog = new OpenFileDialog {Filter = BluePrintAssembler.Resources.MainWindow.FileFilter};
-            if ((bool) dialog.ShowDialog(this))
-            {
-                DataContext = JsonConvert.DeserializeObject<UI.VM.MainWindow>(File.ReadAllText(dialog.FileName), jss);
-                ((UI.VM.MainWindow)DataContext).CurrentWorkspace.FlowChanged += Relayout;
-            }
+            DataContext = JsonConvert.DeserializeObject<UI.VM.MainWindow>(File.ReadAllText(filename), jss);
+            ((UI.VM.MainWindow)DataContext).CurrentWorkspace.FlowChanged += Relayout;
         }
 
         private void AddResult_Click(object sender, RoutedEventArgs e)
@@ -243,6 +268,12 @@ namespace BluePrintAssembler
             var dialog=new UI.SelectItem();
             if (dialog.ShowDialog() ?? false)
                 ((UI.VM.MainWindow) DataContext).CurrentWorkspace.ExistingSources.Add(((SelectItem) dialog.DataContext).SelectedItem);
+        }
+
+
+        private void MainWindow_OnClosing(object sender, CancelEventArgs e)
+        {
+            Save(AutosavePath);
         }
     }
 }

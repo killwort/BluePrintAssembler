@@ -117,16 +117,13 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="ExistingSources" xml:space="preserve">
-    <value>My factory</value>
+  <data name="Filter" xml:space="preserve">
+    <value>Quick filter</value>
   </data>
-  <data name="FileFilter" xml:space="preserve">
-    <value>BluePrintAssembler Layouts|*.bpal|All Files|*.*</value>
+  <data name="Items" xml:space="preserve">
+    <value>Matching items</value>
   </data>
   <data name="Title" xml:space="preserve">
-    <value>Blueprint Assembler</value>
-  </data>
-  <data name="WantedResults" xml:space="preserve">
-    <value>Flow output</value>
+    <value>Select item</value>
   </data>
 </root>

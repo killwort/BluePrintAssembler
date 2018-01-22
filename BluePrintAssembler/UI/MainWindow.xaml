@@ -9,9 +9,11 @@
         xmlns:utils="clr-namespace:BluePrintAssembler.Utils"
         xmlns:resources="clr-namespace:BluePrintAssembler.Resources"
         xmlns:domain="clr-namespace:BluePrintAssembler.Domain"
+        xmlns:system="clr-namespace:System;assembly=mscorlib"
         mc:Ignorable="d"
         x:Name="SelfWindow"
-        Title="MainWindow" Height="450" Width="800">
+        Closing="MainWindow_OnClosing"
+        Title="{x:Static resources:MainWindow.Title}" Height="450" Width="800">
     <Window.DataContext>
         <vm:MainWindow />
     </Window.DataContext>
@@ -30,8 +32,11 @@
         </Grid.ColumnDefinitions>
         <StackPanel Orientation="Horizontal" Grid.ColumnSpan="3">
             <StackPanel Width="30"/>
+            <Button HorizontalAlignment="Left" Command="{Binding CurrentWorkspace.Clear}"><Button.CommandParameter><system:Boolean>False</system:Boolean></Button.CommandParameter>Clear</Button>
+            <Button HorizontalAlignment="Left" Command="{Binding CurrentWorkspace.Clear}"><Button.CommandParameter><system:Boolean>True</system:Boolean></Button.CommandParameter>Clear all</Button>
             <Button HorizontalAlignment="Left" Click="Load_Click">Load</Button>
             <Button HorizontalAlignment="Left" Click="Save_Click">Save</Button>
+            <Button HorizontalAlignment="Left" Click="SaveAs_Click">Save as</Button>
         </StackPanel>
         <ScrollViewer Grid.Column="1" Grid.Row="1" PanningMode="Both" HorizontalScrollBarVisibility="Auto"
                       VerticalScrollBarVisibility="Auto">

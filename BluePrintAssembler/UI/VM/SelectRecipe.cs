@@ -29,7 +29,7 @@ namespace BluePrintAssembler.UI.VM
         {
             base.GetObjectData(info, context);
             info.AddValue("Type",Results.First().MyItem.Type);
-            info.AddValue("Name", Results.First().MyItem.Type);
+            info.AddValue("Name", Results.First().MyItem.Name);
             info.AddValue("Possibilities",PossibleRecipes.Select(x=>x.MyRecipe.Name).ToArray());
         }
 

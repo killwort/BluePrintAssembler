@@ -4,8 +4,10 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
 using System.Runtime.Serialization;
+using System.Threading.Tasks;
 using System.Windows.Data;
 using System.Windows.Input;
+using System.Windows.Threading;
 using BluePrintAssembler.Domain;
 using BluePrintAssembler.Utils;
 using QuickGraph;
@@ -13,20 +15,63 @@ using QuickGraph;
 namespace BluePrintAssembler.UI.VM
 {
     [Serializable]
-    public class Workspace : IBidirectionalGraph<IGraphNode, ProducibleItem>,ISerializable
+    public class Workspace : IBidirectionalGraph<IGraphNode, ProducibleItem>, ISerializable
     {
-        public ICommand UseRecipe { get; private set; }
-        public ICommand AddToFactory { get; private set; }
         public Workspace()
         {
             WantedResults.CollectionChanged += CallFixProductionFlow;
             ExistingSources.CollectionChanged += CallFixProductionFlow;
 
-            AddToFactory=new DelegateCommand<BaseFlowNode>(AddedToFactory);
-            UseRecipe=new DelegateCommand<Tuple<BaseFlowNode,Recipe>>(SelectorRecipeUsed);
+            BindCommands();
         }
 
-        
+
+        #region Commands
+        public ICommand UseRecipe { get; private set; }
+        public ICommand AddToFactory { get; private set; }
+        public ICommand Clear { get; private set; }
+
+        private void BindCommands()
+        {
+            AddToFactory = new DelegateCommand<BaseFlowNode>(AddedToFactory);
+            UseRecipe = new DelegateCommand<Tuple<BaseFlowNode, Recipe>>(SelectorRecipeUsed);
+            Clear = new DelegateCommand<bool>(Cleared);
+        }
+
+        private void AddedToFactory(BaseFlowNode e)
+        {
+            ProductionNodes.Remove(e);
+            foreach (var r in e.Results)
+            {
+                _satisfierNodes.Remove(r.RealItem);
+                ExistingSources.Add(new ProducibleItemWithAmount(r.RealItem));
+            }
+
+            FixProductionFlow();
+        }
+
+        private void SelectorRecipeUsed(Tuple<BaseFlowNode, Recipe> e)
+        {
+            var satisfier = _satisfierNodes.First(x => x.Value == e.Item1);
+            ProductionNodes.Remove(e.Item1);
+            _selectedRecipies[satisfier.Key] = e.Item2.MyRecipe;
+            var newSatisfier = new Recipe(e.Item2.MyRecipe);
+            foreach (var egress in e.Item2.MyRecipe.CurrentMode.Results)
+                _satisfierNodes[Configuration.Instance.RawData.Get(egress.Value.Type, egress.Value.Name)] = newSatisfier;
+            ProductionNodes.Add(newSatisfier);
+            FixProductionFlow();
+        }
+
+        private void Cleared(bool fullClear)
+        {
+            ProductionNodes.Clear();
+            WantedResults.Clear();
+            _satisfierNodes.Clear();
+            _selectedRecipies.Clear();
+            if(fullClear)
+                ExistingSources.Clear();
+        }
+        #endregion
 
         private readonly Dictionary<BaseProducibleObject, BaseFlowNode> _satisfierNodes = new Dictionary<BaseProducibleObject, BaseFlowNode>();
         private readonly Dictionary<BaseProducibleObject, Domain.Recipe> _selectedRecipies = new Dictionary<BaseProducibleObject, Domain.Recipe>();
@@ -99,40 +144,12 @@ namespace BluePrintAssembler.UI.VM
                     Items.Add(edge);
                 }
             }
-            FlowChanged?.Invoke(this,EventArgs.Empty);
+
+            FlowChanged?.Invoke(this, EventArgs.Empty);
         }
 
         public event EventHandler FlowChanged;
 
-        private void AddedToFactory(object sender, BaseProducibleObject e)
-        {
-            _satisfierNodes.Remove(e);
-            ProductionNodes.Remove((BaseFlowNode) sender);
-            ExistingSources.Add(new ProducibleItemWithAmount(e));
-            FixProductionFlow();
-        }
-        private void AddedToFactory(BaseFlowNode e)
-        {
-            ProductionNodes.Remove(e);
-            foreach (var r in e.Results)
-            {
-                _satisfierNodes.Remove(r.RealItem);
-                ExistingSources.Add(new ProducibleItemWithAmount(r.RealItem));
-            }
-
-            FixProductionFlow();
-        }
-        private void SelectorRecipeUsed(Tuple<BaseFlowNode,Recipe> e)
-        {
-            var satisfier = _satisfierNodes.First(x => x.Value == e.Item1);
-            ProductionNodes.Remove(e.Item1);
-            _selectedRecipies[satisfier.Key] = e.Item2.MyRecipe;
-            var newSatisfier = new Recipe(e.Item2.MyRecipe);
-            foreach (var egress in e.Item2.MyRecipe.CurrentMode.Results)
-                _satisfierNodes[Configuration.Instance.RawData.Get(egress.Value.Type, egress.Value.Name)] = newSatisfier;
-            ProductionNodes.Add(newSatisfier);
-            FixProductionFlow();
-        }
 
         public CompositeCollection RenderableElements => new CompositeCollection
         {
@@ -146,11 +163,7 @@ namespace BluePrintAssembler.UI.VM
         public ObservableCollection<ProducibleItemWithAmount> WantedResults { get; } = new ObservableCollection<ProducibleItemWithAmount>();
         public ObservableCollection<ProducibleItemWithAmount> ExistingSources { get; } = new ObservableCollection<ProducibleItemWithAmount>();
 
-        public void TestAddItem()
-        {
-            WantedResults.Add(new ProducibleItemWithAmount(Configuration.Instance.RawData.Items["iron-plate"]) {Amount = 1});
-            WantedResults.Add(new ProducibleItemWithAmount(Configuration.Instance.RawData.Items["copper-plate"]) {Amount = 1});
-        }
+        #region BidirectionalGraph implementation
 
         public bool IsDirected => true;
         public bool AllowParallelEdges => false;
@@ -251,8 +264,12 @@ namespace BluePrintAssembler.UI.VM
             return v.IngressEdges.Count() + v.EgressEdges.Count();
         }
 
+        #endregion
+
+        #region Serialization
+
         [Serializable]
-        public class SelectedRecipe:ISerializable
+        public class SelectedRecipe : ISerializable
         {
             public KeyValuePair<BaseProducibleObject, Domain.Recipe> KV { get; }
 
@@ -263,48 +280,45 @@ namespace BluePrintAssembler.UI.VM
 
             public SelectedRecipe(SerializationInfo info, StreamingContext context)
             {
-                KV=new KeyValuePair<BaseProducibleObject, Domain.Recipe>(
-                    Configuration.Instance.RawData.Get(info.GetString("Type"),info.GetString("Name")),
+                KV = new KeyValuePair<BaseProducibleObject, Domain.Recipe>(
+                    Configuration.Instance.RawData.Get(info.GetString("Type"), info.GetString("Name")),
                     Configuration.Instance.RawData.Recipes[info.GetString("Recipe")]
-                    );
+                );
             }
 
             public void GetObjectData(SerializationInfo info, StreamingContext context)
             {
-                info.AddValue("Type",KV.Key.Type);
+                info.AddValue("Type", KV.Key.Type);
                 info.AddValue("Name", KV.Key.Name);
-                info.AddValue("Recipe",KV.Value.Name);
+                info.AddValue("Recipe", KV.Value.Name);
             }
         }
+
         public void GetObjectData(SerializationInfo info, StreamingContext context)
         {
             info.AddValue("Nodes", ProductionNodes.ToArray());
-            info.AddValue("SelectedRecipes", _selectedRecipies.Select(x=>new SelectedRecipe(x)).ToArray());
-            info.AddValue("Egress",WantedResults.ToArray());
-            info.AddValue("Ingress",ExistingSources.ToArray());
+            info.AddValue("SelectedRecipes", _selectedRecipies.Select(x => new SelectedRecipe(x)).ToArray());
+            info.AddValue("Egress", WantedResults.ToArray());
+            info.AddValue("Ingress", ExistingSources.ToArray());
         }
+
         public Workspace(SerializationInfo info, StreamingContext context)
         {
-            AddToFactory=new DelegateCommand<BaseFlowNode>(AddedToFactory);
-            UseRecipe=new DelegateCommand<Tuple<BaseFlowNode,Recipe>>(SelectorRecipeUsed);
+            AddToFactory = new DelegateCommand<BaseFlowNode>(AddedToFactory);
+            UseRecipe = new DelegateCommand<Tuple<BaseFlowNode, Recipe>>(SelectorRecipeUsed);
 
-            ProductionNodes=new ObservableCollection<BaseFlowNode>((BaseFlowNode[])info.GetValue("Nodes", typeof(BaseFlowNode[])));
+            ProductionNodes = new ObservableCollection<BaseFlowNode>((BaseFlowNode[]) info.GetValue("Nodes", typeof(BaseFlowNode[])));
             /*foreach (var node in ProductionNodes)
                 Bind(node);*/
-            _satisfierNodes=ProductionNodes.SelectMany(x => x.Results).ToLookup(x => x.RealItem, x => x.Parent).ToDictionary(x=>x.Key,x=>x.First());
+            _satisfierNodes = ProductionNodes.SelectMany(x => x.Results).ToLookup(x => x.RealItem, x => x.Parent).ToDictionary(x => x.Key, x => x.First());
             _selectedRecipies = ((SelectedRecipe[]) info.GetValue("SelectedRecipes", typeof(SelectedRecipe[])))
                 .ToDictionary(x => x.KV.Key, x => x.KV.Value);
-            WantedResults=new ObservableCollection<ProducibleItemWithAmount>(((ProducibleItemWithAmount[])info.GetValue("Egress",typeof(ProducibleItemWithAmount[]))));
+            WantedResults = new ObservableCollection<ProducibleItemWithAmount>(((ProducibleItemWithAmount[]) info.GetValue("Egress", typeof(ProducibleItemWithAmount[]))));
             ExistingSources = new ObservableCollection<ProducibleItemWithAmount>(((ProducibleItemWithAmount[]) info.GetValue("Ingress", typeof(ProducibleItemWithAmount[]))));
+            BindCommands();
             FixProductionFlow();
         }
 
-        /*private void Bind(BaseFlowNode selector)
-        {
-            if (selector is SelectRecipe r)
-                r.RecipeUsed += SelectorRecipeUsed;
-            if(selector is IAddableToFactory f)
-                f.AddedToFactory += AddedToFactory;
-        }*/
+        #endregion
     }
 }

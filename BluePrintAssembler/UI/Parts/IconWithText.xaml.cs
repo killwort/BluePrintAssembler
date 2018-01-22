@@ -1,9 +1,14 @@
-﻿using System.Drawing;
+﻿using System;
+using System.Drawing;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Interop;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using BluePrintAssembler.Domain;
 using BluePrintAssembler.Utils;
+using Brush = System.Drawing.Brush;
 
 namespace BluePrintAssembler.UI.Parts
 {
@@ -12,6 +17,10 @@ namespace BluePrintAssembler.UI.Parts
     /// </summary>
     public partial class IconWithText : UserControl
     {
+        private static ImageBrush _bg;
+
+        public static ImageBrush BackgroundBrush => _bg ?? (_bg = new ImageBrush(Imaging.CreateBitmapSourceFromHBitmap(Configuration.Instance.StdIconSlot.GetHbitmap(), IntPtr.Zero, Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions())));
+
         public IconWithText()
         {
             InitializeComponent();

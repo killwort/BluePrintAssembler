@@ -2,7 +2,7 @@
 
 namespace BluePrintAssembler.Utils
 {
-    public class DelegateCommand<T> : System.Windows.Input.ICommand where T : class
+    public class DelegateCommand<T> : System.Windows.Input.ICommand //where T : class
     {
         private readonly Predicate<T> _canExecute;
         private readonly Action<T> _execute;

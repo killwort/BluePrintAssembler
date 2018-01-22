@@ -16,7 +16,7 @@
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
     </UserControl.Resources>
     <Border BorderThickness="1" BorderBrush="#403b35" Width="36" Height="36">
-        <Grid Background="{Binding Source={x:Static domain:Configuration.Instance}, Path=StdIconSlot, Converter={StaticResource BitmapToBrushConverter}}" ToolTip="{Binding ElementName=Self, Path=NamedObject, Mode=OneWay, Converter={StaticResource NamedToLocalisedNameConverter}}" MouseLeftButtonUp="UIElement_OnMouseLeftButtonUp">
+        <Grid Background="{x:Static local:IconWithText.BackgroundBrush}" ToolTip="{Binding ElementName=Self, Path=NamedObject, Mode=OneWay, Converter={StaticResource NamedToLocalisedNameConverter}}" MouseLeftButtonUp="UIElement_OnMouseLeftButtonUp">
             <Image Source="{Binding Path=Icon.Result, ElementName=Self, Mode=OneWay, Converter={StaticResource BitmapToImageSourceConverter}}" />
             <TextBlock Visibility="{Binding ElementName=Self, Path=IsNotEdited, Converter={StaticResource BooleanToVisibilityConverter}}" FontWeight="Bold" RenderOptions.ClearTypeHint="Enabled" Text="{Binding ElementName=Self, Mode=OneWay, Path=Amount, Converter={StaticResource AmountToStringConverter}}" TextAlignment="Right" VerticalAlignment="Bottom" Margin="3" Foreground="Black">
                 <TextBlock.Effect>
