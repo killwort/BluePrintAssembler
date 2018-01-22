@@ -28,7 +28,7 @@
                     <DropShadowEffect ShadowDepth="0" Direction="0" Color="Black" BlurRadius="2" />
                 </TextBlock.Effect>
             </TextBlock>
-            <TextBox Visibility="{Binding ElementName=Self, Path=IsEdited, Converter={StaticResource BooleanToVisibilityConverter}}"  Text="{Binding ElementName=Self, Mode=TwoWay, Path=Amount, Converter={StaticResource AmountToStringConverter}}" Margin="3" HorizontalAlignment="Right" VerticalAlignment="Bottom" x:Name="AmountTextBox"/>
+            <TextBox Visibility="{Binding ElementName=Self, Path=IsEdited, Converter={StaticResource BooleanToVisibilityConverter}}"  Text="{Binding ElementName=Self, Mode=TwoWay, Path=Amount, Converter={StaticResource AmountToStringConverter}}" Margin="3" HorizontalAlignment="Right" VerticalAlignment="Bottom" x:Name="AmountTextBox" LostFocus="AmountTextBox_OnLostFocus" KeyDown="AmountTextBox_OnKeyDown"/>
         </Grid>
     </Border>
 </UserControl>

@@ -84,5 +84,20 @@ namespace BluePrintAssembler.UI.Parts
                 AmountTextBox.Focus();
             }
         }
+
+        private void AmountTextBox_OnKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                //AmountTextBox.BindingGroup.UpdateSources();
+                IsEdited = false;
+            }
+        }
+
+        private void AmountTextBox_OnLostFocus(object sender, RoutedEventArgs e)
+        {
+            //AmountTextBox.BindingGroup.UpdateSources();
+            IsEdited = false;
+        }
     }
 }

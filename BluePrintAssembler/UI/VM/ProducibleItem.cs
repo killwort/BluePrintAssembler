@@ -67,6 +67,8 @@ namespace BluePrintAssembler.UI.VM
                 OnPropertyChanged(nameof(BalanceColor));
         }
 
+        public float Balance => Egress.Rate - Ingress.Rate;
+
         public Color BalanceColor
         {
             get

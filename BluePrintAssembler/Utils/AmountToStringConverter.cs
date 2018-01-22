@@ -36,8 +36,8 @@ namespace BluePrintAssembler.Utils
         private static Regex SuffixedNumberRegex=new Regex(@"^\s*(?<minus>[+-])?(?<integral>[0-9]*)(?<point>[.,])?(?<decimal>[0-9]+)\s*(?<suffix>["+Parts.Suffixes+@"])?\s*$",RegexOptions.Compiled);
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            var m=SuffixedNumberRegex.Match(value.ToString());
-            if(!m.Success)throw new FormatException();
+            var m=SuffixedNumberRegex.Match(value.ToString().ToUpper());
+            if (!m.Success) return null;
             double val;
             if (m.Groups["point"].Success)
             {

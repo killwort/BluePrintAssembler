@@ -84,7 +84,7 @@ namespace BluePrintAssembler.UI.VM
 
         private void FixProductionFlow()
         {
-            var rawData = Configuration.Instance.RawData;
+            /*var rawData = Configuration.Instance.RawData;
             var unsatisfied = new HashSet<BaseProducibleObject>(
                 _satisfierNodes.SelectMany(x => x.Value.Sources.Select(ingress => ingress.RealItem))
                     .Concat(WantedResults.Select(w => w.MyItem))
@@ -143,7 +143,7 @@ namespace BluePrintAssembler.UI.VM
                     var edge = new ProducibleItem(egress, dest, source.Key);
                     Items.Add(edge);
                 }
-            }
+            }*/
 
             FlowChanged?.Invoke(this, EventArgs.Empty);
         }
