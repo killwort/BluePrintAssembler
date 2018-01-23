@@ -88,6 +88,7 @@ namespace BluePrintAssembler.UI.VM
         /*public override RecipeIO[] Sources { get; private set; }
         public override RecipeIO[] Results { get; private set; }*/
         public override float Speed => (float) Math.Round(Producers * (Producer?.MyEntity.CraftingSpeed ?? 1) / MyRecipe.CurrentMode.BaseProductionTime, 2);
+        public override float BaseSpeed => (float) Math.Round((Producer?.MyEntity.CraftingSpeed ?? 1) / MyRecipe.CurrentMode.BaseProductionTime, 2);
         public override IEnumerable<Edge<IGraphNode>> IngressEdges => Sources.SelectMany(x => x.RelatedItems);
         public override IEnumerable<Edge<IGraphNode>> EgressEdges => Results.SelectMany(x => x.RelatedItems);
 
@@ -114,6 +115,7 @@ namespace BluePrintAssembler.UI.VM
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(ProducerVisibility));
                 OnPropertyChanged(nameof(Speed));
+                OnPropertyChanged(nameof(BaseSpeed));
                 OnPropertyChanged(nameof(ProducerSelectorVisibility));
             }
         }

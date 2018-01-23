@@ -16,6 +16,7 @@ namespace BluePrintAssembler.UI.VM
         public RecipeIO[] Sources { get; protected set; } = new RecipeIO[0];
         public RecipeIO[] Results { get; protected set; } = new RecipeIO[0];
         public abstract float Speed { get; }
+        public abstract float BaseSpeed { get; }
         private double _left;
         private double _top;
 

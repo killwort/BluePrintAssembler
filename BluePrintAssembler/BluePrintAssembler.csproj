@@ -281,6 +281,7 @@
     <Compile Include="Utils\MultiDisposeObject.cs" />
     <Compile Include="Utils\MyVisualTreeHelper.cs" />
     <Compile Include="Utils\NamedToLocalisedNameConverter.cs" />
+    <Compile Include="Utils\NotifyObservableCollection.cs" />
     <Compile Include="Utils\NotifyTaskCompletion.cs" />
     <Compile Include="Utils\TuplizerConverter.cs" />
     <Page Include="UI\MainWindow.xaml">

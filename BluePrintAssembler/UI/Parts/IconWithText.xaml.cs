@@ -89,14 +89,14 @@ namespace BluePrintAssembler.UI.Parts
         {
             if (e.Key == Key.Enter)
             {
-                //AmountTextBox.BindingGroup.UpdateSources();
+                AmountTextBox.GetBindingExpression(TextBox.TextProperty).UpdateSource();
                 IsEdited = false;
             }
         }
 
         private void AmountTextBox_OnLostFocus(object sender, RoutedEventArgs e)
         {
-            //AmountTextBox.BindingGroup.UpdateSources();
+            AmountTextBox.GetBindingExpression(TextBox.TextProperty).UpdateSource();
             IsEdited = false;
         }
     }

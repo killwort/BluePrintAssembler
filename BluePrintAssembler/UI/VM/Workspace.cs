@@ -5,6 +5,7 @@ using System.Collections.Specialized;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Threading;
@@ -19,9 +20,6 @@ namespace BluePrintAssembler.UI.VM
     {
         public Workspace()
         {
-            WantedResults.CollectionChanged += CallFixProductionFlow;
-            ExistingSources.CollectionChanged += CallFixProductionFlow;
-
             BindCommands();
         }
 
@@ -33,6 +31,10 @@ namespace BluePrintAssembler.UI.VM
 
         private void BindCommands()
         {
+            WantedResults.CollectionChanged += CallFixProductionFlow;
+            ExistingSources.CollectionChanged += CallFixProductionFlow;
+
+            
             AddToFactory = new DelegateCommand<BaseFlowNode>(AddedToFactory);
             UseRecipe = new DelegateCommand<Tuple<BaseFlowNode, Recipe>>(SelectorRecipeUsed);
             Clear = new DelegateCommand<bool>(Cleared);
@@ -43,7 +45,7 @@ namespace BluePrintAssembler.UI.VM
             ProductionNodes.Remove(e);
             foreach (var r in e.Results)
             {
-                _satisfierNodes.Remove(r.RealItem);
+                //_satisfierNodes.Remove(r.RealItem);
                 ExistingSources.Add(new ProducibleItemWithAmount(r.RealItem));
             }
 
@@ -52,12 +54,13 @@ namespace BluePrintAssembler.UI.VM
 
         private void SelectorRecipeUsed(Tuple<BaseFlowNode, Recipe> e)
         {
-            var satisfier = _satisfierNodes.First(x => x.Value == e.Item1);
+            //var satisfier = _satisfierNodes.First(x => x.Value == e.Item1);
             ProductionNodes.Remove(e.Item1);
-            _selectedRecipies[satisfier.Key] = e.Item2.MyRecipe;
+            foreach (var egress in e.Item2.Results)
+                _selectedRecipies[egress.RealItem] = e.Item2.MyRecipe;
             var newSatisfier = new Recipe(e.Item2.MyRecipe);
-            foreach (var egress in e.Item2.MyRecipe.CurrentMode.Results)
-                _satisfierNodes[Configuration.Instance.RawData.Get(egress.Value.Type, egress.Value.Name)] = newSatisfier;
+            /*foreach (var egress in e.Item2.MyRecipe.CurrentMode.Results)
+                _satisfierNodes[Configuration.Instance.RawData.Get(egress.Value.Type, egress.Value.Name)] = newSatisfier;*/
             ProductionNodes.Add(newSatisfier);
             FixProductionFlow();
         }
@@ -66,24 +69,126 @@ namespace BluePrintAssembler.UI.VM
         {
             ProductionNodes.Clear();
             WantedResults.Clear();
-            _satisfierNodes.Clear();
+            //_satisfierNodes.Clear();
             _selectedRecipies.Clear();
             if(fullClear)
                 ExistingSources.Clear();
         }
         #endregion
 
-        private readonly Dictionary<BaseProducibleObject, BaseFlowNode> _satisfierNodes = new Dictionary<BaseProducibleObject, BaseFlowNode>();
+        //private readonly Dictionary<BaseProducibleObject, BaseFlowNode> _satisfierNodes = new Dictionary<BaseProducibleObject, BaseFlowNode>();
         private readonly Dictionary<BaseProducibleObject, Domain.Recipe> _selectedRecipies = new Dictionary<BaseProducibleObject, Domain.Recipe>();
 
-
+        private Task fixer = null;
         private void CallFixProductionFlow(object sender, NotifyCollectionChangedEventArgs e)
         {
-            FixProductionFlow();
+            if (fixer == null)
+                fixer = Task.Run(() =>
+                {
+                    Task.Delay(100);
+                    FixProductionFlow();
+                    fixer = null;
+                });
+        }
+
+        private class WorkspaceProducibleItem
+        {
+            public BaseProducibleObject Item;
+            public float Balance;
+            public List<BaseFlowNode> Producers = new List<BaseFlowNode>();
+            public List<BaseFlowNode> Consumers = new List<BaseFlowNode>();
+
+            public override string ToString()
+            {
+                return $"{Item?.Type} {Item?.Name}: {Balance:0.#}";
+            }
         }
 
         private void FixProductionFlow()
         {
+            var rawData = Configuration.Instance.RawData;
+
+            var baseItems = new Dictionary<BaseProducibleObject,WorkspaceProducibleItem>();
+            foreach (var src in ExistingSources)
+                baseItems.GetOrCreate(src.MyItem, () => new WorkspaceProducibleItem {Item = src.MyItem}).Balance = float.PositiveInfinity;
+            foreach (var dst in WantedResults)
+                baseItems.GetOrCreate(dst.MyItem, () => new WorkspaceProducibleItem {Item = dst.MyItem}).Balance -= dst.Amount;
+
+            Dictionary<BaseProducibleObject, WorkspaceProducibleItem> roundResults;
+            do
+            {
+                roundResults = new Dictionary<BaseProducibleObject, WorkspaceProducibleItem>(baseItems);
+
+                //Step 1: balance all existing nodes
+                var toRemove = new List<BaseFlowNode>();
+                foreach (var node in ProductionNodes)
+                {
+                    var needed = (int) Math.Ceiling(node.Results.Max(x => -roundResults.GetOrDefault(x.RealItem, () => new WorkspaceProducibleItem()).Balance / x.BaseRate));
+                    if (node is Recipe r)
+                        r.Producers = needed;
+                    if (needed == 0)
+                    {
+                        toRemove.Add(node);
+                        continue;
+                    }
+
+                    foreach (var egress in node.Results)
+                    {
+                        var item = roundResults.GetOrCreate(egress.RealItem, () => new WorkspaceProducibleItem {Item = egress.RealItem});
+                        item.Producers.Add(node);
+                        item.Balance += egress.Rate;
+                    }
+
+                    foreach (var ingress in node.Sources)
+                    {
+                        var item = roundResults.GetOrCreate(ingress.RealItem, () => new WorkspaceProducibleItem {Item = ingress.RealItem});
+                        item.Consumers.Add(node);
+                        item.Balance -= ingress.Rate;
+                    }
+                }
+
+                foreach (var n in toRemove)
+                    ProductionNodes.Remove(n);
+
+                //Step 2: add more nodes
+                foreach (var neededItem in roundResults.Where(x => x.Value.Balance < 0))
+                {
+                    var possibleRecipies = rawData.Recipes.Where(x => x.Value.HasResult(neededItem.Key)).ToArray();
+                    _selectedRecipies.TryGetValue(neededItem.Key, out var selectedRecipe);
+                    if (!possibleRecipies.Any())
+                    {
+                        var satisfier = new ManualItemSource(neededItem.Key);
+                        ProductionNodes.Add(satisfier);
+                    }
+                    else if (possibleRecipies.Length == 1 || selectedRecipe != null)
+                    {
+                        var recipe = selectedRecipe ?? possibleRecipies.First().Value;
+                        var satisfier = new Recipe(recipe);
+                        ProductionNodes.Add(satisfier);
+                    }
+                    else
+                    {
+                        var selector = new SelectRecipe(possibleRecipies.Select(x => x.Value), neededItem.Key);
+                        ProductionNodes.Add(selector);
+                    }
+                }
+            } while (roundResults.Any(x => x.Value.Balance < 0));
+
+
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                Items.Clear();
+                foreach (var item in roundResults)
+                {
+                    foreach (var ingress in item.Value.Consumers)
+                    foreach (var egress in item.Value.Producers)
+                    {
+                        var edge = new ProducibleItem(egress.Results.First(x => x.RealItem.Equals(item.Key)), ingress.Sources.First(x => x.RealItem.Equals(item.Key)), item.Key);
+                        Items.Add(edge);
+                    }
+                }
+            });
+
             /*var rawData = Configuration.Instance.RawData;
             var unsatisfied = new HashSet<BaseProducibleObject>(
                 _satisfierNodes.SelectMany(x => x.Value.Sources.Select(ingress => ingress.RealItem))
@@ -160,8 +265,8 @@ namespace BluePrintAssembler.UI.VM
         public ObservableCollection<BaseFlowNode> ProductionNodes { get; } = new ObservableCollection<BaseFlowNode>();
         public ObservableCollection<ProducibleItem> Items { get; } = new ObservableCollection<ProducibleItem>();
 
-        public ObservableCollection<ProducibleItemWithAmount> WantedResults { get; } = new ObservableCollection<ProducibleItemWithAmount>();
-        public ObservableCollection<ProducibleItemWithAmount> ExistingSources { get; } = new ObservableCollection<ProducibleItemWithAmount>();
+        public NotifyObservableCollection<ProducibleItemWithAmount> WantedResults { get; } = new NotifyObservableCollection<ProducibleItemWithAmount>();
+        public NotifyObservableCollection<ProducibleItemWithAmount> ExistingSources { get; } = new NotifyObservableCollection<ProducibleItemWithAmount>();
 
         #region BidirectionalGraph implementation
 
@@ -310,11 +415,11 @@ namespace BluePrintAssembler.UI.VM
             ProductionNodes = new ObservableCollection<BaseFlowNode>((BaseFlowNode[]) info.GetValue("Nodes", typeof(BaseFlowNode[])));
             /*foreach (var node in ProductionNodes)
                 Bind(node);*/
-            _satisfierNodes = ProductionNodes.SelectMany(x => x.Results).ToLookup(x => x.RealItem, x => x.Parent).ToDictionary(x => x.Key, x => x.First());
+            //_satisfierNodes = ProductionNodes.SelectMany(x => x.Results).ToLookup(x => x.RealItem, x => x.Parent).ToDictionary(x => x.Key, x => x.First());
             _selectedRecipies = ((SelectedRecipe[]) info.GetValue("SelectedRecipes", typeof(SelectedRecipe[])))
                 .ToDictionary(x => x.KV.Key, x => x.KV.Value);
-            WantedResults = new ObservableCollection<ProducibleItemWithAmount>(((ProducibleItemWithAmount[]) info.GetValue("Egress", typeof(ProducibleItemWithAmount[]))));
-            ExistingSources = new ObservableCollection<ProducibleItemWithAmount>(((ProducibleItemWithAmount[]) info.GetValue("Ingress", typeof(ProducibleItemWithAmount[]))));
+            WantedResults = new NotifyObservableCollection<ProducibleItemWithAmount>(((ProducibleItemWithAmount[]) info.GetValue("Egress", typeof(ProducibleItemWithAmount[]))));
+            ExistingSources = new NotifyObservableCollection<ProducibleItemWithAmount>(((ProducibleItemWithAmount[]) info.GetValue("Ingress", typeof(ProducibleItemWithAmount[]))));
             BindCommands();
             FixProductionFlow();
         }

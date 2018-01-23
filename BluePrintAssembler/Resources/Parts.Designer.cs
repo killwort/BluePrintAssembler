@@ -79,6 +79,15 @@ namespace BluePrintAssembler.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Made with.
+        /// </summary>
+        public static string MadeWith {
+            get {
+                return ResourceManager.GetString("MadeWith", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Select.
         /// </summary>
         public static string Select {

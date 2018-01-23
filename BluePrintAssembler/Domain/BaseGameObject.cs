@@ -15,6 +15,11 @@ namespace BluePrintAssembler.Domain
         [JsonProperty("place_result")]
         public string EntityName { get; set; }
 
+        public override string ToString()
+        {
+            return $"{Type} {Name}";
+        }
+
         protected bool Equals(BaseGameObject other)
         {
             return string.Equals(Name, other.Name) && string.Equals(Type, other.Type);

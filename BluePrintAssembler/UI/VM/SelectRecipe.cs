@@ -11,7 +11,8 @@ namespace BluePrintAssembler.UI.VM
     [Serializable]
     public class SelectRecipe: BaseFlowNode, ISelectableElement
     {
-        public override float Speed => 1;
+        public override float Speed => float.PositiveInfinity;
+        public override float BaseSpeed => float.PositiveInfinity;
 
         public SelectRecipe(IEnumerable<Domain.Recipe> enumerable, BaseProducibleObject result)
         {

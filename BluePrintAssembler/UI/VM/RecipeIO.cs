@@ -37,6 +37,8 @@ namespace BluePrintAssembler.UI.VM
             {
                 if (arg.PropertyName == nameof(Recipe.Speed))
                     OnPropertyChanged(nameof(Rate));
+                if (arg.PropertyName == nameof(Recipe.BaseSpeed))
+                    OnPropertyChanged(nameof(BaseRate));
             };
         }
 
@@ -57,6 +59,7 @@ namespace BluePrintAssembler.UI.VM
         public List<ProducibleItem> RelatedItems { get; private set; } = new List<ProducibleItem>();
 
         public float Rate => MyItem.Amount * Parent.Speed;
+        public float BaseRate => MyItem.Amount * Parent.BaseSpeed;
         public event PropertyChangedEventHandler PropertyChanged;
 
         [NotifyPropertyChangedInvocator]

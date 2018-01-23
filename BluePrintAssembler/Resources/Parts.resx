@@ -123,6 +123,9 @@
   <data name="ItemCannotBeCrafted" xml:space="preserve">
     <value>Item cannot be crafted</value>
   </data>
+  <data name="MadeWith" xml:space="preserve">
+    <value>Made with</value>
+  </data>
   <data name="Select" xml:space="preserve">
     <value>Select</value>
   </data>

@@ -14,6 +14,7 @@ namespace BluePrintAssembler.UI.VM
     {
         private NotifyTaskCompletion<Bitmap> _icon;
         public override float Speed => float.PositiveInfinity;
+        public override float BaseSpeed => float.PositiveInfinity;
 
         public ManualItemSource(BaseProducibleObject result)
         {

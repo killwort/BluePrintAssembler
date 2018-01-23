@@ -139,5 +139,18 @@ namespace BluePrintAssembler.Utils
                 Visit(node);
             return sorted;
         }
+
+        public static V GetOrCreate<K, V>(this IDictionary<K, V> dict, K key, Func<V> creatorFunc)
+        {
+            if (dict.TryGetValue(key, out V val))
+                return val;
+            return dict[key] = creatorFunc();
+        }
+        public static V GetOrDefault<K, V>(this IDictionary<K, V> dict, K key, Func<V> creatorFunc)
+        {
+            if (dict.TryGetValue(key, out V val))
+                return val;
+            return creatorFunc();
+        }
     }
 }

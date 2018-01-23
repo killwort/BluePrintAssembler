@@ -102,7 +102,7 @@
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.Resources>
                         <DataTemplate DataType="{x:Type vm:ProducibleItemWithAmount}">
-                            <parts:IconWithText DataContext="{Binding}" Amount="{Binding Amount}" Icon="{Binding Icon}" NamedObject="{Binding MyItem}" />
+                            <parts:IconWithText DataContext="{Binding}" Amount="{Binding Amount, Mode=TwoWay}" Icon="{Binding Icon}" NamedObject="{Binding MyItem}" />
                         </DataTemplate>
                     </ItemsControl.Resources>
                 </ItemsControl>
@@ -135,7 +135,7 @@
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.Resources>
                         <DataTemplate DataType="{x:Type vm:ProducibleItemWithAmount}">
-                            <parts:IconWithText AmountEditable="True" DataContext="{Binding}" Amount="{Binding Amount}" Icon="{Binding Icon}" NamedObject="{Binding MyItem}" />
+                            <parts:IconWithText AmountEditable="True" DataContext="{Binding}" Amount="{Binding Amount, Mode=TwoWay}" Icon="{Binding Icon}" NamedObject="{Binding MyItem}" />
                         </DataTemplate>
                     </ItemsControl.Resources>
                 </ItemsControl>
