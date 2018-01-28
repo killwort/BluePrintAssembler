@@ -9,6 +9,7 @@ namespace BluePrintAssembler.UI.VM
     {
         public SelectItem()
         {
+            
             ListView = new ListCollectionView(Configuration.Instance.RawData.Items.Select(x => (BaseProducibleObject) x.Value).Concat(Configuration.Instance.RawData.Fluids.Select(x => x.Value)).Select(x => new ProducibleItemWithAmount(x)).ToList());
             ListView.GroupDescriptions.Add(new PropertyGroupDescription($"{nameof(ProducibleItemWithAmount.MyItem)}.{nameof(BaseProducibleObject.Subgroup)}"));
             ListView.IsLiveGrouping = true;

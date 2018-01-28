@@ -108,6 +108,7 @@
     <Compile Include="Domain\Box.cs" />
     <Compile Include="Domain\Configuration.cs" />
     <Compile Include="Domain\Container.cs" />
+    <Compile Include="Domain\Effect.cs" />
     <Compile Include="Domain\ElectricPole.cs" />
     <Compile Include="Domain\EnergySource.cs" />
     <Compile Include="Domain\Fluid.cs" />
@@ -123,6 +124,7 @@
     <Compile Include="Domain\LocalisedString.cs" />
     <Compile Include="Domain\MiningDrill.cs" />
     <Compile Include="Domain\ModInfo.cs" />
+    <Compile Include="Domain\Module.cs" />
     <Compile Include="Domain\ModuleSpecification.cs" />
     <Compile Include="Domain\Point.cs" />
     <Compile Include="Domain\PositionContainer.cs" />
