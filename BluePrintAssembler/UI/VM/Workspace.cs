@@ -115,6 +115,7 @@ namespace BluePrintAssembler.UI.VM
                 baseItems.GetOrCreate(dst.MyItem, () => new WorkspaceProducibleItem {Item = dst.MyItem}).Balance -= dst.Amount;
 
             Dictionary<BaseProducibleObject, WorkspaceProducibleItem> roundResults;
+            int nrounds = 100;
             do
             {
                 roundResults = new Dictionary<BaseProducibleObject, WorkspaceProducibleItem>(baseItems);
@@ -172,7 +173,7 @@ namespace BluePrintAssembler.UI.VM
                         ProductionNodes.Add(selector);
                     }
                 }
-            } while (roundResults.Any(x => x.Value.Balance < 0));
+            } while (roundResults.Any(x => x.Value.Balance < 0) && nrounds-->0);
 
 
             Application.Current.Dispatcher.Invoke(() =>

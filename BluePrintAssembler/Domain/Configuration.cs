@@ -85,6 +85,15 @@ namespace BluePrintAssembler.Domain
             {
                 if (File.Exists(Path.Combine(folder, "mod-settings.json")))
                     return (JObject) JsonConvert.DeserializeObject(File.ReadAllText(Path.Combine(folder, "mod-settings.json")));
+                if (File.Exists(Path.Combine(folder, "mod-settings.dat")))
+                {
+                    using (var file = File.OpenRead(Path.Combine(folder, "mod-settings.dat")))
+                    {
+                        file.Seek(8, SeekOrigin.Begin);
+                        return (JObject) (new PropertyTreeReader(file).ReadOne());
+                    }
+                }
+
                 return new JObject();
             })).ToArray());
             return allItems.Aggregate(new JObject(), (acc, obj) =>
@@ -356,9 +365,9 @@ namespace BluePrintAssembler.Domain
 
                     var rootObject = Convert(lua.GetTable("data.raw"));
                     LoadStatus = Resources.Configuration.RemovingTempFiles;
-                    foreach (var mod in mods)
+                    /*foreach (var mod in mods)
                         if (mod.TempPath != null && mod.TempPath != mod.BasePath)
-                            Directory.Delete(mod.TempPath, true);
+                            Directory.Delete(mod.TempPath, true);*/
 
                     rootObject.Add("Locale", locale);
                     return rootObject;
